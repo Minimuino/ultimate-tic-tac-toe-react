@@ -30,7 +30,7 @@ class Board extends React.Component
             winnerSquare = true;
         }
         return (
-            <Square
+            <Square key={i}
                 value={this.props.squares[i]}
                 winner={winnerSquare}
                 onClick={() => this.props.onClick(i)}
@@ -40,36 +40,19 @@ class Board extends React.Component
 
     render()
     {
-        const rows = [
-            <div className="board-row" key={0}>
-                {this.renderSquare(0)}
-                {this.renderSquare(1)}
-                {this.renderSquare(2)}
-            </div>,
-            <div className="board-row" key={1}>
-                {this.renderSquare(3)}
-                {this.renderSquare(4)}
-                {this.renderSquare(5)}
-            </div>,
-            <div className="board-row" key={2}>
-                {this.renderSquare(6)}
-                {this.renderSquare(7)}
-                {this.renderSquare(8)}
-            </div>
-        ];
-        // const size = [3, 3]; // This should be a prop
-        // var rows = [];
-        // for (let i = 0; i < size[0]; i++)
-        // {
-        //     let cols = [];
-        //     for (let j = 0; j < size[1]; j++)
-        //     {
-
-        //     }
-        //     rows.push(
-        //         <div className="board-row" key={i}>{cols}</div>
-        //     );
-        // }
+        const size = this.props.size;
+        var rows = [];
+        for (let i = 0; i < size; i++)
+        {
+            let cols = [];
+            for (let j = 0; j < size; j++)
+            {
+                cols.push(this.renderSquare(i*size + j));
+            }
+            rows.push(
+                <div className="board-row" key={i}>{cols}</div>
+            );
+        }
         return (
             <div>{rows}</div>
         );
@@ -83,7 +66,7 @@ class Game extends React.Component
         super(props);
         this.state = {
             history: [{
-                squares: Array(9).fill(null),
+                squares: Array(this.props.size * this.props.size).fill(null),
                 lastMoveLocation: {row: null, col: null}
             }],
             stepNumber: 0,
@@ -101,15 +84,16 @@ class Game extends React.Component
 
     handleClick(i)
     {
+        const size = this.props.size;
         const history = this.state.history.slice(0, this.state.stepNumber + 1);
         const current = history[history.length - 1];
         const squares = current.squares.slice();
-        if (calculateWinner(squares) || squares[i])
+        if (calculateWinner(squares, current.lastMoveLocation) || squares[i])
         {
             return;
         }
         squares[i] = this.state.xIsNext ? 'X' : 'O';
-        const lastMoveLocation = {row: Math.floor(i / 3), col: i % 3}
+        const lastMoveLocation = {row: Math.floor(i / size), col: i % size}
         this.setState({
             history: history.concat([{squares: squares, lastMoveLocation: lastMoveLocation}]),
             stepNumber: history.length,
@@ -135,14 +119,14 @@ class Game extends React.Component
             }
             const style = this.state.stepNumber === move ? {fontWeight: 'bold'} : {};
             return (
-                <li key={move}>
+                <li key={move} value={move}>
                     <button style={style} onClick={() => this.jumpTo(move)}>{desc}</button>
                 </li>
             );
         });
 
         let status;
-        const winnerLine = calculateWinner(current.squares);
+        const winnerLine = calculateWinner(current.squares, current.lastMoveLocation);
         if (winnerLine)
         {
             const winner = current.squares[winnerLine[0]];
@@ -164,6 +148,7 @@ class Game extends React.Component
             <div className="game">
                 <div className="game-board">
                     <Board
+                        size={this.props.size}
                         squares={current.squares}
                         winnerLine={winnerLine}
                         onClick={(i) => this.handleClick(i)}
@@ -171,29 +156,60 @@ class Game extends React.Component
                 </div>
                 <div className="game-info">
                     <div>{status}</div>
-                    <ol>{moves}</ol>
+                    <ol>{moves.reverse()}</ol>
                 </div>
             </div>
         );
     }
 }
 
-function calculateWinner(squares)
+function calculateWinner(squares, lastMoveLocation)
 {
-    const lines = [
-        [0, 1, 2],
-        [3, 4, 5],
-        [6, 7, 8],
-        [0, 3, 6],
-        [1, 4, 7],
-        [2, 5, 8],
-        [0, 4, 8],
-        [2, 4, 6],
-    ];
-    for (let line of lines)
+    if (!lastMoveLocation || lastMoveLocation.row===null || lastMoveLocation.col===null)
+        return null;
+
+    const size = Math.sqrt(squares.length);
+    const x = lastMoveLocation.row;
+    const y = lastMoveLocation.col;
+    const lastPlayer = squares[x*size + y];
+
+    // Generate possible winner lines for last move
+    var lines = {row: [], col: [], diag: [], antidiag: []};
+    // Row
+    for (let i = 0; i < size; i++)
     {
-        const [a, b, c] = line;
-        if (squares[a] && (squares[a] === squares[b]) && (squares[b] === squares[c]))
+        lines.row.push(x*size + i);
+    }
+    // Col
+    for (let i = 0; i < size; i++)
+    {
+        lines.col.push(i*size + y);
+    }
+    // Diagonal
+    if (x === y)
+    {
+        for (let i = 0; i < size; i++)
+        {
+            lines.diag.push(i*size + i);
+        }
+    }
+    // Anti-diagonal
+    if (x + y === size - 1)
+    {
+        for (let i = 0; i < size; i++)
+        {
+            lines.antidiag.push(i*size + size-1-i);
+        }
+    }
+
+    // Chech values on each candidate line
+    for (let prop in lines)
+    {
+        const line = lines[prop];
+        if (line.length !== size)
+            continue;
+        const result = line.reduce((acc, index) => acc && (squares[index] === lastPlayer), true);
+        if (result)
         {
             return line;
         }
@@ -204,6 +220,6 @@ function calculateWinner(squares)
 // ========================================
 
 ReactDOM.render(
-    <Game />,
+    <Game size={4}/>,
     document.getElementById('root')
 );
