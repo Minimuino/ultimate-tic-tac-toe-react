@@ -88,17 +88,71 @@ class Game extends React.Component
         const history = this.state.history.slice(0, this.state.stepNumber + 1);
         const current = history[history.length - 1];
         const squares = current.squares.slice();
-        if (calculateWinner(squares, current.lastMoveLocation) || squares[i])
+        if (this.calculateWinner(squares, current.lastMoveLocation) || squares[i])
         {
             return;
         }
         squares[i] = this.state.xIsNext ? 'X' : 'O';
         const lastMoveLocation = {row: Math.floor(i / size), col: i % size}
-        this.setState({
+        this.setState((prevState, props) => ({
             history: history.concat([{squares: squares, lastMoveLocation: lastMoveLocation}]),
             stepNumber: history.length,
             xIsNext: !this.state.xIsNext,
-        });
+        }));
+    }
+
+    calculateWinner(squares, lastMoveLocation)
+    {
+        if (!lastMoveLocation || lastMoveLocation.row===null || lastMoveLocation.col===null)
+            return null;
+
+        const size = Math.sqrt(squares.length);
+        const x = lastMoveLocation.row;
+        const y = lastMoveLocation.col;
+        const lastPlayer = squares[x*size + y];
+
+        // Generate possible winner lines for last move
+        var lines = {row: [], col: [], diag: [], antidiag: []};
+        // Row
+        for (let i = 0; i < size; i++)
+        {
+            lines.row.push(x*size + i);
+        }
+        // Col
+        for (let i = 0; i < size; i++)
+        {
+            lines.col.push(i*size + y);
+        }
+        // Diagonal
+        if (x === y)
+        {
+            for (let i = 0; i < size; i++)
+            {
+                lines.diag.push(i*size + i);
+            }
+        }
+        // Anti-diagonal
+        if (x + y === size - 1)
+        {
+            for (let i = 0; i < size; i++)
+            {
+                lines.antidiag.push(i*size + size-1-i);
+            }
+        }
+
+        // Chech values on each candidate line
+        for (let prop in lines)
+        {
+            const line = lines[prop];
+            if (line.length !== size)
+                continue;
+            const result = line.reduce((acc, index) => acc && (squares[index] === lastPlayer), true);
+            if (result)
+            {
+                return line;
+            }
+        }
+        return null;
     }
 
     render()
@@ -126,7 +180,7 @@ class Game extends React.Component
         });
 
         let status;
-        const winnerLine = calculateWinner(current.squares, current.lastMoveLocation);
+        const winnerLine = this.calculateWinner(current.squares, current.lastMoveLocation);
         if (winnerLine)
         {
             const winner = current.squares[winnerLine[0]];
@@ -163,63 +217,80 @@ class Game extends React.Component
     }
 }
 
-function calculateWinner(squares, lastMoveLocation)
+class SettingsForm extends React.Component
 {
-    if (!lastMoveLocation || lastMoveLocation.row===null || lastMoveLocation.col===null)
-        return null;
+    constructor(props)
+    {
+        super(props);
+        this.state = {
+            value: this.props.defaultValue
+        };
 
-    const size = Math.sqrt(squares.length);
-    const x = lastMoveLocation.row;
-    const y = lastMoveLocation.col;
-    const lastPlayer = squares[x*size + y];
-
-    // Generate possible winner lines for last move
-    var lines = {row: [], col: [], diag: [], antidiag: []};
-    // Row
-    for (let i = 0; i < size; i++)
-    {
-        lines.row.push(x*size + i);
-    }
-    // Col
-    for (let i = 0; i < size; i++)
-    {
-        lines.col.push(i*size + y);
-    }
-    // Diagonal
-    if (x === y)
-    {
-        for (let i = 0; i < size; i++)
-        {
-            lines.diag.push(i*size + i);
-        }
-    }
-    // Anti-diagonal
-    if (x + y === size - 1)
-    {
-        for (let i = 0; i < size; i++)
-        {
-            lines.antidiag.push(i*size + size-1-i);
-        }
+        this.handleChange = this.handleChange.bind(this);
+        this.handleSubmit = this.handleSubmit.bind(this);
     }
 
-    // Chech values on each candidate line
-    for (let prop in lines)
+    handleChange(event)
     {
-        const line = lines[prop];
-        if (line.length !== size)
-            continue;
-        const result = line.reduce((acc, index) => acc && (squares[index] === lastPlayer), true);
-        if (result)
-        {
-            return line;
-        }
+        this.setState({value: event.target.value});
     }
-    return null;
+
+    handleSubmit(event)
+    {
+        this.props.submitCallback(this.state.value);
+        event.preventDefault();
+    }
+
+    render()
+    {
+        return (
+            <form onSubmit={this.handleSubmit}>
+                <label>
+                    Board size <input type="number" value={this.state.value} onChange={this.handleChange} />
+                </label>
+                <input type="submit" value="New game" />
+            </form>
+        );
+    }
+}
+
+class GameContainer extends React.Component
+{
+    constructor(props)
+    {
+        super(props);
+        this.state = {
+            boardSize: 3,
+            matchID: 0
+        };
+
+        this.game = <Game key={this.state.matchID} size={this.state.boardSize}/>;
+        this.newGame = this.newGame.bind(this);
+    }
+
+    newGame(size)
+    {
+        // console.log('New size is ' + size);
+        this.setState((prevState, props) => ({
+            boardSize: size,
+            matchID: prevState.matchID+1
+        }));
+    }
+
+    render()
+    {
+        return (
+            <div className="game-container">
+                <SettingsForm defaultValue={this.state.boardSize} submitCallback={this.newGame} /><br/>
+                <Game key={this.state.matchID} size={this.state.boardSize}/>
+            </div>
+        );
+    }
 }
 
 // ========================================
 
 ReactDOM.render(
-    <Game size={4}/>,
+    <GameContainer/>,
     document.getElementById('root')
 );
