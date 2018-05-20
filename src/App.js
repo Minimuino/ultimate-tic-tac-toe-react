@@ -9,18 +9,21 @@ export default class App extends React.Component
         super(props);
         this.state = {
             boardSize: 3,
+            clock: true,
+            time: 10,
             matchID: 0
         };
 
-        this.game = <Game key={this.state.matchID} size={this.state.boardSize}/>;
         this.newGame = this.newGame.bind(this);
     }
 
-    newGame(size)
+    newGame(size, clock, time)
     {
         // console.log('New size is ' + size);
         this.setState((prevState, props) => ({
             boardSize: size,
+            clock: clock,
+            time: time,
             matchID: prevState.matchID+1
         }));
     }
@@ -29,8 +32,12 @@ export default class App extends React.Component
     {
         return (
             <div className="game-container">
-                <SettingsForm defaultValue={this.state.boardSize} submitCallback={this.newGame} /><br/>
-                <Game key={this.state.matchID} size={this.state.boardSize} renderInfo={true} />
+                <SettingsForm defaultValues={this.state} submitCallback={this.newGame} /><br/>
+                <Game key={this.state.matchID}
+                    size={this.state.boardSize}
+                    clock={this.state.clock}
+                    time={this.state.time}
+                    renderInfo={true} />
             </div>
         );
     }

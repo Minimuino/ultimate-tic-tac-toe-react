@@ -6,7 +6,9 @@ export default class SettingsForm extends React.Component
     {
         super(props);
         this.state = {
-            value: this.props.defaultValue
+            boardSize: this.props.defaultValues.boardSize,
+            clock: this.props.defaultValues.clock,
+            time: this.props.defaultValues.time
         };
 
         this.handleChange = this.handleChange.bind(this);
@@ -15,12 +17,18 @@ export default class SettingsForm extends React.Component
 
     handleChange(event)
     {
-        this.setState({value: event.target.value});
+        const target = event.target;
+        const value = target.type === 'checkbox' ? target.checked : target.value;
+        const name = target.name;
+
+        this.setState({
+          [name]: value
+        });
     }
 
     handleSubmit(event)
     {
-        this.props.submitCallback(this.state.value);
+        this.props.submitCallback(this.state.boardSize, this.state.clock, this.state.time);
         event.preventDefault();
     }
 
@@ -28,10 +36,31 @@ export default class SettingsForm extends React.Component
     {
         return (
             <form onSubmit={this.handleSubmit}>
-                <label>
-                    Board size <input type="number" value={this.state.value} onChange={this.handleChange} />
-                </label>
                 <input type="submit" value="New game" />
+                <label className="settings-label">
+                    Board size <input
+                        name="boardSize"
+                        type="number"
+                        min="2"
+                        value={this.state.boardSize}
+                        onChange={this.handleChange} />
+                </label>
+                <label className="settings-label">
+                    Clock <input
+                        name="clock"
+                        type="checkbox"
+                        checked={this.state.clock}
+                        onChange={this.handleChange} />
+                </label>
+                {this.state.clock &&
+                <label className="settings-label">
+                    Time <input
+                        name="time"
+                        type="number"
+                        min="1"
+                        value={this.state.time}
+                        onChange={this.handleChange} />
+                </label>}
             </form>
         );
     }

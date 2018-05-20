@@ -48,3 +48,11 @@ ol, ul {
 .game-info {
   margin-left: 20px;
 }
+
+.countdown {
+  display: inline-block;
+}
+
+.settings-label {
+  margin-left: 20px;
+}

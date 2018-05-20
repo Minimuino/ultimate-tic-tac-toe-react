@@ -1,5 +1,6 @@
 import React from 'react';
 import Board from './Board.js';
+import CountDown from './CountDown.js';
 
 export default class Game extends React.Component
 {
@@ -14,6 +15,8 @@ export default class Game extends React.Component
             stepNumber: 0,
             xIsNext: true
         };
+
+        this.timeOver = this.timeOver.bind(this);
     }
 
     jumpTo(step)
@@ -22,6 +25,11 @@ export default class Game extends React.Component
             stepNumber: step,
             xIsNext: (step % 2) === 0,
         });
+    }
+
+    timeOver(player)
+    {
+        console.log('Time over!!' + player + ' loses');
     }
 
     handleClick(i)
@@ -140,6 +148,8 @@ export default class Game extends React.Component
             }
         }
 
+        const timerXPaused = !this.state.xIsNext || Boolean(winnerLine);
+        const timerOPaused = this.state.xIsNext || Boolean(winnerLine);
         return (
             <div className="game">
                 <div className="game-board">
@@ -153,6 +163,20 @@ export default class Game extends React.Component
                 {this.props.renderInfo &&
                     <div className="game-info">
                         <div>{status}</div>
+                        {this.props.clock &&
+                            <div>[TIME]
+                                X: <CountDown key={1}
+                                    player="X"
+                                    seconds={this.props.time}
+                                    isPaused={timerXPaused}
+                                    timeOverCallback={this.timeOver} />
+                                , O: <CountDown key={2}
+                                    player="O"
+                                    seconds={this.props.time}
+                                    isPaused={timerOPaused}
+                                    timeOverCallback={this.timeOver} />
+                            </div>
+                        }
                         <ol>{moves.reverse()}</ol>
                     </div>
                 }
