@@ -1,6 +1,7 @@
 import React from 'react';
 import Board from './Board.js';
 import CountDown from './CountDown.js';
+import generateGridNxN from '../util/GameUtil.js';
 
 export default class Game extends React.Component
 {
@@ -16,6 +17,7 @@ export default class Game extends React.Component
         };
 
         this.timeOver = this.timeOver.bind(this);
+        this.renderBoard = this.renderBoard.bind(this);
     }
 
     timeOver(player)
@@ -106,6 +108,18 @@ export default class Game extends React.Component
         return null;
     }
 
+    renderBoard(i)
+    {
+        return (
+            <Board key={i}
+                size={this.props.size}
+                squares={this.state.squares}
+                winnerLine={this.state.winnerLine}
+                onClick={(p) => this.handleClick(p)}
+            />
+        );
+    }
+
     render()
     {
         let status;
@@ -131,16 +145,10 @@ export default class Game extends React.Component
 
         const timerXPaused = !this.state.xIsNext || Boolean(this.state.winner);
         const timerOPaused = this.state.xIsNext || Boolean(this.state.winner);
+        const grid = generateGridNxN('game', this.props.size, this.renderBoard);
         return (
-            <div className="game">
-                <div className="game-board">
-                    <Board
-                        size={this.props.size}
-                        squares={this.state.squares}
-                        winnerLine={this.state.winnerLine}
-                        onClick={(i) => this.handleClick(i)}
-                    />
-                </div>
+            <div className="game-container">
+                {grid}
                 {this.props.renderInfo &&
                     <div className="game-info">
                         <div>{status}</div>
