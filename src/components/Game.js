@@ -35,7 +35,7 @@ export default class Game extends React.Component
             const history = this.state.history;
             const current = history[step];
             winnerLine = this.calculateWinner(current.squares, current.lastMoveLocation);
-            winner = current.squares[winnerLine[0]];
+            winner = winnerLine ? current.squares[winnerLine[0]] : null;
         }
         this.setState({
             stepNumber: step,
