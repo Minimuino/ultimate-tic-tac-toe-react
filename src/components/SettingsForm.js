@@ -54,7 +54,7 @@ export default class SettingsForm extends React.Component
                 </label>
                 {this.state.clock &&
                 <label className="settings-label">
-                    Time <input
+                    Time (s) <input
                         name="time"
                         type="number"
                         min="1"

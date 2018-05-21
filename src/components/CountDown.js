@@ -27,8 +27,15 @@ export default class CountDown extends React.Component
         this.setState((prevState, props) => {
             var now = new Date();
             const dt = now - this.lastTick;
+            const elapsed = prevState.elapsed + dt;
+            // Check if time is over
+            const remaining = props.seconds - elapsed / 1000;
+            if (remaining < 0.15)
+            {
+                props.timeOverCallback(props.player);
+            }
             return {
-                elapsed: prevState.elapsed + dt
+                elapsed: elapsed
             };
         });
         this.lastTick = new Date();
@@ -55,16 +62,12 @@ export default class CountDown extends React.Component
 
         if (this.props.isPaused)
         {
-            console.log('Pause!!');
+            // console.log('Pause!!');
             this.pause();
-        }
-        else if (minutes === 0 && seconds === 0)
-        {
-            this.props.timeOverCallback(this.props.player);
         }
         else if (!this.timer)
         {
-            console.log('Resume!!');
+            // console.log('Resume!!');
             this.resume();
         }
 

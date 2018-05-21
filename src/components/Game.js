@@ -13,7 +13,9 @@ export default class Game extends React.Component
                 lastMoveLocation: {row: null, col: null}
             }],
             stepNumber: 0,
-            xIsNext: true
+            xIsNext: true,
+            winner: null,
+            winnerLine: null
         };
 
         this.timeOver = this.timeOver.bind(this);
@@ -21,15 +23,39 @@ export default class Game extends React.Component
 
     jumpTo(step)
     {
+        var winner;
+        var winnerLine;
+        if (step !== this.state.history.length-1)
+        {
+            winner = null;
+            winnerLine = null;
+        }
+        else
+        {
+            const history = this.state.history;
+            const current = history[step];
+            winnerLine = this.calculateWinner(current.squares, current.lastMoveLocation);
+            winner = current.squares[winnerLine[0]];
+        }
         this.setState({
             stepNumber: step,
             xIsNext: (step % 2) === 0,
+            winner: winner,
+            winnerLine: winnerLine
         });
     }
 
     timeOver(player)
     {
-        console.log('Time over!!' + player + ' loses');
+        // console.log('Time over!!' + player + ' loses');
+        if (player === 'X')
+        {
+            this.setState({winner: 'O'});
+        }
+        else
+        {
+            this.setState({winner: 'X'});
+        }
     }
 
     handleClick(i)
@@ -38,16 +64,20 @@ export default class Game extends React.Component
         const history = this.state.history.slice(0, this.state.stepNumber + 1);
         const current = history[history.length - 1];
         const squares = current.squares.slice();
-        if (this.calculateWinner(squares, current.lastMoveLocation) || squares[i])
+        if (this.state.winner || squares[i])
         {
             return;
         }
         squares[i] = this.state.xIsNext ? 'X' : 'O';
         const lastMoveLocation = {row: Math.floor(i / size), col: i % size}
+        const winnerLine = this.calculateWinner(squares, lastMoveLocation);
+        const winner = winnerLine ? squares[winnerLine[0]] : null;
         this.setState((prevState, props) => ({
             history: history.concat([{squares: squares, lastMoveLocation: lastMoveLocation}]),
             stepNumber: history.length,
             xIsNext: !this.state.xIsNext,
+            winner: winner,
+            winnerLine: winnerLine
         }));
     }
 
@@ -130,11 +160,13 @@ export default class Game extends React.Component
         });
 
         let status;
-        const winnerLine = this.calculateWinner(current.squares, current.lastMoveLocation);
-        if (winnerLine)
+        if (this.state.winner)
         {
-            const winner = current.squares[winnerLine[0]];
-            status = winner + ' wins!';
+            status = this.state.winner + ' wins!';
+            if (this.state.winnerLine === null)
+            {
+                status = 'Time over! ' + status;
+            }
         }
         else
         {
@@ -148,15 +180,15 @@ export default class Game extends React.Component
             }
         }
 
-        const timerXPaused = !this.state.xIsNext || Boolean(winnerLine);
-        const timerOPaused = this.state.xIsNext || Boolean(winnerLine);
+        const timerXPaused = !this.state.xIsNext || Boolean(this.state.winner);
+        const timerOPaused = this.state.xIsNext || Boolean(this.state.winner);
         return (
             <div className="game">
                 <div className="game-board">
                     <Board
                         size={this.props.size}
                         squares={current.squares}
-                        winnerLine={winnerLine}
+                        winnerLine={this.state.winnerLine}
                         onClick={(i) => this.handleClick(i)}
                     />
                 </div>
