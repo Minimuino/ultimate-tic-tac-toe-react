@@ -8,41 +8,14 @@ export default class Game extends React.Component
     {
         super(props);
         this.state = {
-            history: [{
-                squares: Array(this.props.size * this.props.size).fill(null),
-                lastMoveLocation: {row: null, col: null}
-            }],
-            stepNumber: 0,
+            squares: Array(this.props.size * this.props.size).fill(null),
+            lastMoveLocation: {row: null, col: null},
             xIsNext: true,
             winner: null,
             winnerLine: null
         };
 
         this.timeOver = this.timeOver.bind(this);
-    }
-
-    jumpTo(step)
-    {
-        var winner;
-        var winnerLine;
-        if (step !== this.state.history.length-1)
-        {
-            winner = null;
-            winnerLine = null;
-        }
-        else
-        {
-            const history = this.state.history;
-            const current = history[step];
-            winnerLine = this.calculateWinner(current.squares, current.lastMoveLocation);
-            winner = current.squares[winnerLine[0]];
-        }
-        this.setState({
-            stepNumber: step,
-            xIsNext: (step % 2) === 0,
-            winner: winner,
-            winnerLine: winnerLine
-        });
     }
 
     timeOver(player)
@@ -61,9 +34,7 @@ export default class Game extends React.Component
     handleClick(i)
     {
         const size = this.props.size;
-        const history = this.state.history.slice(0, this.state.stepNumber + 1);
-        const current = history[history.length - 1];
-        const squares = current.squares.slice();
+        const squares = this.state.squares.slice();
         if (this.state.winner || squares[i])
         {
             return;
@@ -73,8 +44,8 @@ export default class Game extends React.Component
         const winnerLine = this.calculateWinner(squares, lastMoveLocation);
         const winner = winnerLine ? squares[winnerLine[0]] : null;
         this.setState((prevState, props) => ({
-            history: history.concat([{squares: squares, lastMoveLocation: lastMoveLocation}]),
-            stepNumber: history.length,
+            squares: squares,
+            lastMoveLocation: lastMoveLocation,
             xIsNext: !this.state.xIsNext,
             winner: winner,
             winnerLine: winnerLine
@@ -137,28 +108,6 @@ export default class Game extends React.Component
 
     render()
     {
-        const history = this.state.history;
-        const current = history[this.state.stepNumber];
-
-        const moves = history.map((step, move) => {
-            let desc;
-            if (move)
-            {
-                const location = history[move].lastMoveLocation.row + ', ' + history[move].lastMoveLocation.col;
-                desc = 'Go to move #' + move + ' (' + location + ')';
-            }
-            else
-            {
-                desc = 'Go to game start';
-            }
-            const style = this.state.stepNumber === move ? {fontWeight: 'bold'} : {};
-            return (
-                <li key={move} value={move}>
-                    <button style={style} onClick={() => this.jumpTo(move)}>{desc}</button>
-                </li>
-            );
-        });
-
         let status;
         if (this.state.winner)
         {
@@ -170,7 +119,7 @@ export default class Game extends React.Component
         }
         else
         {
-            if (current.squares.indexOf(null) === -1)
+            if (this.state.squares.indexOf(null) === -1)
             {
                 status = 'Draw! Everybody wins!! :D';
             }
@@ -187,7 +136,7 @@ export default class Game extends React.Component
                 <div className="game-board">
                     <Board
                         size={this.props.size}
-                        squares={current.squares}
+                        squares={this.state.squares}
                         winnerLine={this.state.winnerLine}
                         onClick={(i) => this.handleClick(i)}
                     />
@@ -209,7 +158,6 @@ export default class Game extends React.Component
                                     timeOverCallback={this.timeOver} />
                             </div>
                         }
-                        <ol>{moves.reverse()}</ol>
                     </div>
                 }
             </div>
