@@ -9,11 +9,12 @@ export default class Game extends React.Component
     {
         super(props);
         this.state = {
-            squares: Array(this.props.size * this.props.size).fill(null),
-            lastMoveLocation: {row: null, col: null},
+            squares: Array(this.props.size * this.props.size).fill(   // Outer squares
+                Array(this.props.size * this.props.size).fill(null)), // Inner squares
+            localWinners: Array(this.props.size * this.props.size).fill(null),
+            lastMoveLocation: {row: null, col: null, outerRow: null, outerCol: null},
             xIsNext: true,
-            winner: null,
-            winnerLine: null
+            winner: null
         };
 
         this.timeOver = this.timeOver.bind(this);
@@ -33,24 +34,60 @@ export default class Game extends React.Component
         }
     }
 
-    handleClick(i)
+    isCurrentBoard(idx)
+    {
+        if (this.state.winner)
+            return false;
+
+        const lastRow = this.state.lastMoveLocation.row;
+        const lastCol = this.state.lastMoveLocation.col;
+        if (lastRow === null || lastCol === null)
+        {
+            return true;
+        }
+        else
+        {
+            const currentBoard = lastRow * this.props.size + lastCol;
+            if (this.state.localWinners[currentBoard])
+            {
+                return this.state.localWinners[idx] === null;
+            }
+            else
+            {
+                return idx === currentBoard;
+            }
+        }
+    }
+
+    handleClick(inner_idx, outer_idx)
     {
         const size = this.props.size;
-        const squares = this.state.squares.slice();
-        if (this.state.winner || squares[i])
+        var outerSquares = this.state.squares.slice();
+        var squares = this.state.squares[outer_idx].slice();
+        var localWinners = this.state.localWinners.slice();
+        if (this.state.winner || !this.isCurrentBoard(outer_idx) || squares[inner_idx])
         {
             return;
         }
-        squares[i] = this.state.xIsNext ? 'X' : 'O';
-        const lastMoveLocation = {row: Math.floor(i / size), col: i % size}
-        const winnerLine = this.calculateWinner(squares, lastMoveLocation);
-        const winner = winnerLine ? squares[winnerLine[0]] : null;
+        squares[inner_idx] = this.state.xIsNext ? 'X' : 'O';
+        outerSquares[outer_idx] = squares;
+        const lastMoveLocation = {
+            row: Math.floor(inner_idx / size),
+            col: inner_idx % size,
+            outerRow: Math.floor(outer_idx / size),
+            outerCol: outer_idx % size
+        };
+        const newWinnerLine = this.calculateWinner(squares, lastMoveLocation);
+        localWinners[outer_idx] = newWinnerLine && squares[newWinnerLine[0]];
+        const globalWinnerLine = this.calculateWinner(localWinners,
+            {row: lastMoveLocation.outerRow, col: lastMoveLocation.outerCol});
+        const winner = globalWinnerLine ? localWinners[globalWinnerLine[0]] : null;
         this.setState((prevState, props) => ({
-            squares: squares,
+            squares: outerSquares,
+            localWinners: localWinners,
             lastMoveLocation: lastMoveLocation,
             xIsNext: !this.state.xIsNext,
-            winner: winner,
-            winnerLine: winnerLine
+            winner: winner
         }));
     }
 
@@ -63,6 +100,8 @@ export default class Game extends React.Component
         const x = lastMoveLocation.row;
         const y = lastMoveLocation.col;
         const lastPlayer = squares[x*size + y];
+        if (lastPlayer === null)
+            return null;
 
         // Generate possible winner lines for last move
         var lines = {row: [], col: [], diag: [], antidiag: []};
@@ -113,9 +152,10 @@ export default class Game extends React.Component
         return (
             <Board key={i}
                 size={this.props.size}
-                squares={this.state.squares}
-                winnerLine={this.state.winnerLine}
-                onClick={(p) => this.handleClick(p)}
+                squares={this.state.squares[i]}
+                winner={this.state.localWinners[i]}
+                clickable={this.isCurrentBoard(i)}
+                onClick={(p) => this.handleClick(p, i)}
             />
         );
     }
@@ -126,14 +166,16 @@ export default class Game extends React.Component
         if (this.state.winner)
         {
             status = this.state.winner + ' wins!';
-            if (this.state.winnerLine === null)
+            const lastOuterMove = {row: this.state.lastMoveLocation.outerRow,
+                col: this.state.lastMoveLocation.outerCol};
+            if (this.calculateWinner(this.state.localWinners, lastOuterMove) === null)
             {
                 status = 'Time over! ' + status;
             }
         }
         else
         {
-            if (this.state.squares.indexOf(null) === -1)
+            if (this.state.localWinners.indexOf(null) === -1)
             {
                 status = 'Draw! Everybody wins!! :D';
             }

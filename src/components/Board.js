@@ -12,15 +12,11 @@ export default class Board extends React.Component
 
     renderSquare(i)
     {
-        var winnerSquare = false;
-        if (this.props.winnerLine && this.props.winnerLine.indexOf(i) >= 0)
-        {
-            winnerSquare = true;
-        }
         return (
             <Square key={i}
                 value={this.props.squares[i]}
-                winner={winnerSquare}
+                winner={this.props.winner}
+                clickable={this.props.clickable}
                 onClick={() => this.props.onClick(i)}
             />
         );
