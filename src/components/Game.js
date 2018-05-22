@@ -198,12 +198,12 @@ export default class Game extends React.Component
                             <div>[TIME]
                                 X: <CountDown key={1}
                                     player="X"
-                                    seconds={this.props.time}
+                                    seconds={this.props.time * 60}
                                     isPaused={timerXPaused}
                                     timeOverCallback={this.timeOver} />
                                 , O: <CountDown key={2}
                                     player="O"
-                                    seconds={this.props.time}
+                                    seconds={this.props.time * 60}
                                     isPaused={timerOPaused}
                                     timeOverCallback={this.timeOver} />
                             </div>
