@@ -1,9 +1,9 @@
 Ultimate tic-tac-toe with React.js
 ==================================
 
-Extension of the React.js tutorial: implementation of [ultimate tic-tac-toe](https://en.wikipedia.org/wiki/Ultimate_tic-tac-toe).
+Extension of the React.js tutorial: implementation of [ultimate tic-tac-toe](https://en.wikipedia.org/wiki/Ultimate_tic-tac-toe). You can play it at <http://minimuino.github.io/ultimate-tic-tac-toe-react>.
 
-This project was bootstrapped with [Create React App](https://github.com/facebookincubator/create-react-app).
+This project was bootstrapped with [Create React App](https://github.com/facebookincubator/create-react-app) and published with [gh-pages](https://github.com/tschaub/gh-pages).
 
 Guide
 -----
