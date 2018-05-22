@@ -13,6 +13,12 @@ ol, ul {
   display: table;
 }
 
+.game-row:after {
+  clear: both;
+  content: "";
+  display: table;
+}
+
 .status {
   margin-bottom: 10px;
 }
@@ -40,13 +46,18 @@ ol, ul {
   background: #ddd;
 }
 
-.game {
+.game-info {
+  margin-left: 20px;
+}
+
+.game-container {
   display: flex;
   flex-direction: row;
 }
 
-.game-info {
-  margin-left: 20px;
+.board {
+  border: 2px solid #999;
+  float: left;
 }
 
 .countdown {

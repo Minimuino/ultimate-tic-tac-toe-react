@@ -42,6 +42,7 @@ export default class SettingsForm extends React.Component
                         name="boardSize"
                         type="number"
                         min="2"
+                        max="10"
                         value={this.state.boardSize}
                         onChange={this.handleChange} />
                 </label>
@@ -54,7 +55,7 @@ export default class SettingsForm extends React.Component
                 </label>
                 {this.state.clock &&
                 <label className="settings-label">
-                    Time (s) <input
+                    Time (min) <input
                         name="time"
                         type="number"
                         min="1"

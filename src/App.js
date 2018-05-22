@@ -9,7 +9,7 @@ export default class App extends React.Component
         super(props);
         this.state = {
             boardSize: 3,
-            clock: true,
+            clock: false,
             time: 10,
             matchID: 0
         };
@@ -31,7 +31,7 @@ export default class App extends React.Component
     render()
     {
         return (
-            <div className="game-container">
+            <div className="app">
                 <SettingsForm defaultValues={this.state} submitCallback={this.newGame} /><br/>
                 <Game key={this.state.matchID}
                     size={this.state.boardSize}

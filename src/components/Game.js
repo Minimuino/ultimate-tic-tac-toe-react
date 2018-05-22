@@ -1,6 +1,7 @@
 import React from 'react';
 import Board from './Board.js';
 import CountDown from './CountDown.js';
+import generateGridNxN from '../util/GameUtil.js';
 
 export default class Game extends React.Component
 {
@@ -8,41 +9,16 @@ export default class Game extends React.Component
     {
         super(props);
         this.state = {
-            history: [{
-                squares: Array(this.props.size * this.props.size).fill(null),
-                lastMoveLocation: {row: null, col: null}
-            }],
-            stepNumber: 0,
+            squares: Array(this.props.size * this.props.size).fill(   // Outer squares
+                Array(this.props.size * this.props.size).fill(null)), // Inner squares
+            localWinners: Array(this.props.size * this.props.size).fill(null),
+            lastMoveLocation: {row: null, col: null, outerRow: null, outerCol: null},
             xIsNext: true,
-            winner: null,
-            winnerLine: null
+            winner: null
         };
 
         this.timeOver = this.timeOver.bind(this);
-    }
-
-    jumpTo(step)
-    {
-        var winner;
-        var winnerLine;
-        if (step !== this.state.history.length-1)
-        {
-            winner = null;
-            winnerLine = null;
-        }
-        else
-        {
-            const history = this.state.history;
-            const current = history[step];
-            winnerLine = this.calculateWinner(current.squares, current.lastMoveLocation);
-            winner = winnerLine ? current.squares[winnerLine[0]] : null;
-        }
-        this.setState({
-            stepNumber: step,
-            xIsNext: (step % 2) === 0,
-            winner: winner,
-            winnerLine: winnerLine
-        });
+        this.renderBoard = this.renderBoard.bind(this);
     }
 
     timeOver(player)
@@ -58,26 +34,60 @@ export default class Game extends React.Component
         }
     }
 
-    handleClick(i)
+    isCurrentBoard(idx)
+    {
+        if (this.state.winner)
+            return false;
+
+        const lastRow = this.state.lastMoveLocation.row;
+        const lastCol = this.state.lastMoveLocation.col;
+        if (lastRow === null || lastCol === null)
+        {
+            return true;
+        }
+        else
+        {
+            const currentBoard = lastRow * this.props.size + lastCol;
+            if (this.state.localWinners[currentBoard])
+            {
+                return this.state.localWinners[idx] === null;
+            }
+            else
+            {
+                return idx === currentBoard;
+            }
+        }
+    }
+
+    handleClick(inner_idx, outer_idx)
     {
         const size = this.props.size;
-        const history = this.state.history.slice(0, this.state.stepNumber + 1);
-        const current = history[history.length - 1];
-        const squares = current.squares.slice();
-        if (this.state.winner || squares[i])
+        var outerSquares = this.state.squares.slice();
+        var squares = this.state.squares[outer_idx].slice();
+        var localWinners = this.state.localWinners.slice();
+        if (this.state.winner || !this.isCurrentBoard(outer_idx) || squares[inner_idx])
         {
             return;
         }
-        squares[i] = this.state.xIsNext ? 'X' : 'O';
-        const lastMoveLocation = {row: Math.floor(i / size), col: i % size}
-        const winnerLine = this.calculateWinner(squares, lastMoveLocation);
-        const winner = winnerLine ? squares[winnerLine[0]] : null;
+        squares[inner_idx] = this.state.xIsNext ? 'X' : 'O';
+        outerSquares[outer_idx] = squares;
+        const lastMoveLocation = {
+            row: Math.floor(inner_idx / size),
+            col: inner_idx % size,
+            outerRow: Math.floor(outer_idx / size),
+            outerCol: outer_idx % size
+        };
+        const newWinnerLine = this.calculateWinner(squares, lastMoveLocation);
+        localWinners[outer_idx] = newWinnerLine && squares[newWinnerLine[0]];
+        const globalWinnerLine = this.calculateWinner(localWinners,
+            {row: lastMoveLocation.outerRow, col: lastMoveLocation.outerCol});
+        const winner = globalWinnerLine ? localWinners[globalWinnerLine[0]] : null;
         this.setState((prevState, props) => ({
-            history: history.concat([{squares: squares, lastMoveLocation: lastMoveLocation}]),
-            stepNumber: history.length,
+            squares: outerSquares,
+            localWinners: localWinners,
+            lastMoveLocation: lastMoveLocation,
             xIsNext: !this.state.xIsNext,
-            winner: winner,
-            winnerLine: winnerLine
+            winner: winner
         }));
     }
 
@@ -90,6 +100,8 @@ export default class Game extends React.Component
         const x = lastMoveLocation.row;
         const y = lastMoveLocation.col;
         const lastPlayer = squares[x*size + y];
+        if (lastPlayer === null)
+            return null;
 
         // Generate possible winner lines for last move
         var lines = {row: [], col: [], diag: [], antidiag: []};
@@ -135,42 +147,35 @@ export default class Game extends React.Component
         return null;
     }
 
+    renderBoard(i)
+    {
+        return (
+            <Board key={i}
+                size={this.props.size}
+                squares={this.state.squares[i]}
+                winner={this.state.localWinners[i]}
+                clickable={this.isCurrentBoard(i)}
+                onClick={(p) => this.handleClick(p, i)}
+            />
+        );
+    }
+
     render()
     {
-        const history = this.state.history;
-        const current = history[this.state.stepNumber];
-
-        const moves = history.map((step, move) => {
-            let desc;
-            if (move)
-            {
-                const location = history[move].lastMoveLocation.row + ', ' + history[move].lastMoveLocation.col;
-                desc = 'Go to move #' + move + ' (' + location + ')';
-            }
-            else
-            {
-                desc = 'Go to game start';
-            }
-            const style = this.state.stepNumber === move ? {fontWeight: 'bold'} : {};
-            return (
-                <li key={move} value={move}>
-                    <button style={style} onClick={() => this.jumpTo(move)}>{desc}</button>
-                </li>
-            );
-        });
-
         let status;
         if (this.state.winner)
         {
             status = this.state.winner + ' wins!';
-            if (this.state.winnerLine === null)
+            const lastOuterMove = {row: this.state.lastMoveLocation.outerRow,
+                col: this.state.lastMoveLocation.outerCol};
+            if (this.calculateWinner(this.state.localWinners, lastOuterMove) === null)
             {
                 status = 'Time over! ' + status;
             }
         }
         else
         {
-            if (current.squares.indexOf(null) === -1)
+            if (this.state.localWinners.indexOf(null) === -1)
             {
                 status = 'Draw! Everybody wins!! :D';
             }
@@ -182,16 +187,10 @@ export default class Game extends React.Component
 
         const timerXPaused = !this.state.xIsNext || Boolean(this.state.winner);
         const timerOPaused = this.state.xIsNext || Boolean(this.state.winner);
+        const grid = generateGridNxN('game', this.props.size, this.renderBoard);
         return (
-            <div className="game">
-                <div className="game-board">
-                    <Board
-                        size={this.props.size}
-                        squares={current.squares}
-                        winnerLine={this.state.winnerLine}
-                        onClick={(i) => this.handleClick(i)}
-                    />
-                </div>
+            <div className="game-container">
+                {grid}
                 {this.props.renderInfo &&
                     <div className="game-info">
                         <div>{status}</div>
@@ -199,17 +198,16 @@ export default class Game extends React.Component
                             <div>[TIME]
                                 X: <CountDown key={1}
                                     player="X"
-                                    seconds={this.props.time}
+                                    seconds={this.props.time * 60}
                                     isPaused={timerXPaused}
                                     timeOverCallback={this.timeOver} />
                                 , O: <CountDown key={2}
                                     player="O"
-                                    seconds={this.props.time}
+                                    seconds={this.props.time * 60}
                                     isPaused={timerOPaused}
                                     timeOverCallback={this.timeOver} />
                             </div>
                         }
-                        <ol>{moves.reverse()}</ol>
                     </div>
                 }
             </div>

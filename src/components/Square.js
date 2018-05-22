@@ -9,7 +9,18 @@ export default function Square(props)
     }
     if (props.winner)
     {
-        style.background = '#e5ffd6';
+        if (props.winner === 'X')
+        {
+            style.background = '#ffccb5';
+        }
+        else
+        {
+            style.background = '#dbf5ff';
+        }
+    }
+    if (props.clickable)
+    {
+        style.background = '#e2ffec';
     }
     return (
         <button className="square" style={style} onClick={props.onClick}>
