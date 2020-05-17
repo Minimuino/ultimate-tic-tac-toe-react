@@ -20,6 +20,7 @@ export default class Game extends Component {
       },
       xIsNext: true,
       winner: null,
+      players: props.players
     };
 
     this.timeOver = this.timeOver.bind(this);
@@ -155,6 +156,13 @@ export default class Game extends Component {
   }
 
   render() {
+    const { state } = this;
+    if (state.xIsNext && state.players.p1 === "ai") {
+      state.makeAIMove();
+    } else if (!state.xIsNext && state.players.p2 === "ai") {
+      state.makeAIMove();
+    }
+
     let status;
     if (this.state.winner) {
       status = this.state.winner + " wins!";

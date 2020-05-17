@@ -3,12 +3,13 @@ import React from "react";
 export const squareColors = {
   X: "#fc7341",
   O: "#2db2e2",
-  WINNER_X: "ffccb5",
-  WINNER_O: "dbf5ff",
-  CLICKABLE: "e2ffec"
+  WINNER_X: "#ffccb5",
+  WINNER_O: "#dbf5ff",
+  CLICKABLE: "#e2ffec"
 }
 
 export default function Square(props) {
+
   var style = { display: "inline-block" };
   if (props.value) {
     style.color = props.value === "X" ? squareColors.X : squareColors.O;

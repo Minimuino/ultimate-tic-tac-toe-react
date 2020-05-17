@@ -20,8 +20,6 @@ describe("onclick", () => {
 
         const instance = game.root
         const squares = instance.findAll(el => el.props.className === "square")
-        // console.log(squares[0])
-        //console.log(squares[0]._fiber.child.stateNode.text)
         expect(squares.filter(x => containsXorO(x.props.children)).length).toBe(0)
 
         squares[0].props.onClick();
@@ -41,25 +39,8 @@ describe("onclick", () => {
         const squares = instance.findAll(el => el.props.className === "square")
         expect(squares.filter((x) => isClickAble(x)).length).toBe(81)
 
-        squares[33].props.onClick();
-        squares[57].props.onClick();
-        squares[34].props.onClick();
-        squares[66].props.onClick();
-        squares[35].props.onClick();
-        squares[75].props.onClick();
-        squares[42].props.onClick();
-        squares[58].props.onClick();
-        squares[43].props.onClick();
-        squares[67].props.onClick();
-        squares[44].props.onClick();
-        squares[76].props.onClick();
-        squares[51].props.onClick();
-        squares[59].props.onClick();
-        squares[52].props.onClick();
-        squares[68].props.onClick();
-        squares[53].props.onClick();
+        letCurrentPlayerWin(squares);
 
-        console.log(squares[0].props);
         expect(squares.filter((x) => isClickAble(x)).length).toBe(0)
         expect(instance.findByProps({ id: "status" }).props.children).toEqual("X wins!")
     })
@@ -81,28 +62,20 @@ describe("onclick", () => {
         expect(squares.filter((x) => isClickAble(x)).length).toBe(81)
 
         squares[3].props.onClick();
-        squares[33].props.onClick();
-        squares[57].props.onClick();
-        squares[34].props.onClick();
-        squares[66].props.onClick();
-        squares[35].props.onClick();
-        squares[75].props.onClick();
-        squares[42].props.onClick();
-        squares[58].props.onClick();
-        squares[43].props.onClick();
-        squares[67].props.onClick();
-        squares[44].props.onClick();
-        squares[76].props.onClick();
-        squares[51].props.onClick();
-        squares[59].props.onClick();
-        squares[52].props.onClick();
-        squares[68].props.onClick();
-        squares[53].props.onClick();
+        letCurrentPlayerWin(squares);
 
-        console.log(squares[0].props);
         expect(squares.filter((x) => isClickAble(x)).length).toBe(0)
         expect(instance.findByProps({ id: "status" }).props.children).toEqual("O wins!")
     })
+
+    function letCurrentPlayerWin(squares) {
+        const indexes = [33, 57, 34, 66, 35, 75, 42, 58, 43, 67, 44, 76, 51, 59, 52, 68, 53]
+        indexes.forEach(x => squares[x].props.onClick())
+    }
+
+    function containsXorO(x) {
+        return x && (x.includes("X") || x.includes("O"));
+    }
 
     //test new game
 
@@ -125,7 +98,5 @@ describe("onclick", () => {
             expect(inst.state.xIsNext).toBe(true)
         });*/
 
-    function containsXorO(x) {
-        return x && (x.includes("X") || x.includes("O"));
-    }
+
 });
