@@ -1,6 +1,6 @@
 import React from "react";
 import renderer from "react-test-renderer";
-import GameSettings, { dropdownOptions } from "../components/GameSettings";
+import PlayerSettings, { dropdownOptions } from "../components/PlayerSettings";
 
 var players = {};
 
@@ -8,10 +8,10 @@ function updatePlayers(p) {
   players = p;
 }
 
-describe("GameSettingsForm", () => {
-  test("Test update", () => {
+describe("PlayerSettings", () => {
+  test("Test update callback", () => {
     const settings = renderer.create(
-      <GameSettings callBackPlayer={updatePlayers} />
+      <PlayerSettings callBackPlayer={updatePlayers} />
     );
     const root = settings.root;
     const dropdownPlayer1 = root.findByProps({ name: "p1" });

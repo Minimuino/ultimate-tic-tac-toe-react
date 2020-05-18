@@ -1,15 +1,21 @@
 import React, { Component } from "react";
 import { Dropdown, Input } from "semantic-ui-react";
-import { players } from "./Game";
+
+export const defaultPlayers = {
+  p1: "human",
+  p2: "human",
+  aiP1T: 0.1,
+  aiP2T: 0.1,
+};
 
 export const dropdownOptions = [
   { key: "h", value: "human", text: "human" },
   { key: "a", value: "ai", text: "ai" },
 ];
 
-class GameSettings extends Component {
+class PlayerSettings extends Component {
   state = {
-    players: players, //TODO: change!
+    players: defaultPlayers, //TODO: change!
     callBackPlayer: this.props.callBackPlayer,
   };
 
@@ -46,7 +52,6 @@ class GameSettings extends Component {
           defaultValue={this.state.players.p2}
           onChange={(a, b) => this.handlePlayerTarget("p2", b)}
         />
-        <br />
         {this.state.players.p1 === "ai" && (
           <label className="settings-label">
             <Input
@@ -80,4 +85,4 @@ class GameSettings extends Component {
   }
 }
 
-export default GameSettings;
+export default PlayerSettings;

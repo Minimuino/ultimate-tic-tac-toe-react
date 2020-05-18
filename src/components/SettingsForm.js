@@ -51,8 +51,6 @@ export default class SettingsForm extends React.Component {
             onChange={(a, b) => this.handleTarget(b)}
           />
         </label>
-        <br />
-
         {this.state.clock && (
           <label className="settings-label">
             <Input

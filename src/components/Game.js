@@ -1,36 +1,30 @@
 import React, { Component } from "react";
 import Board from "./Board.js";
-import CountDown from "./CountDown.js";
 import generateGridNxN from "../util/GameUtil.js";
+import { defaultPlayers } from "./PlayerSettings";
 
-import GameSettings from "./GameSettings";
+import GameSidebar from "./GameSideBar";
 
-export const players = { p1: "human", p2: "human", aiP1T: 0.1, aiP2T: 0.1 };
+import PlayerSettings from "./PlayerSettings";
 
 export default class Game extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      squares: Array(3 * 3).fill(
-        // Outer squares
-        Array(3 * 3).fill(null)
-      ), // Inner squares
-      localWinners: Array(3 * 3).fill(null),
-      lastMoveLocation: {
-        row: null,
-        col: null,
-        outerRow: null,
-        outerCol: null,
-      },
-      xIsNext: true,
-      winner: null,
-      size: 3,
-      players: players,
-    };
-
-    this.timeOver = this.timeOver.bind(this);
-    this.renderBoard = this.renderBoard.bind(this);
-  }
+  state = {
+    squares: Array(3 * 3).fill(
+      // Outer squares
+      Array(3 * 3).fill(null)
+    ), // Inner squares
+    localWinners: Array(3 * 3).fill(null),
+    lastMoveLocation: {
+      row: null,
+      col: null,
+      outerRow: null,
+      outerCol: null,
+    },
+    xIsNext: true,
+    winner: null,
+    size: 3,
+    players: defaultPlayers,
+  };
 
   getPlayer = () => {
     return this.players;
@@ -38,15 +32,6 @@ export default class Game extends Component {
   setPlayer = (players) => {
     this.setState({ players: { ...players } });
   };
-
-  timeOver(player) {
-    // console.log('Time over!!' + player + ' loses');
-    if (player === "X") {
-      this.setState({ winner: "O" });
-    } else {
-      this.setState({ winner: "X" });
-    }
-  }
 
   isFieldActive(idx) {
     if (this.state.winner) return false;
@@ -153,19 +138,6 @@ export default class Game extends Component {
     return null;
   }
 
-  renderBoard(i) {
-    return (
-      <Board
-        key={i}
-        size={3}
-        squares={this.state.squares[i]}
-        winner={this.state.localWinners[i]}
-        clickable={this.isFieldActive(i)}
-        onClick={(p) => this.handleClick(p, i)}
-      />
-    );
-  }
-
   makeAIMove = () => {
     let moves = this.getMoves();
     let move = this.random_item(moves);
@@ -190,6 +162,19 @@ export default class Game extends Component {
     return items[Math.floor(Math.random() * items.length)];
   }
 
+  renderBoard = (i) => {
+    return (
+      <Board
+        key={i}
+        size={3}
+        squares={this.state.squares[i]}
+        winner={this.state.localWinners[i]}
+        clickable={this.isFieldActive(i)}
+        onClick={(p) => this.handleClick(p, i)}
+      />
+    );
+  };
+
   render() {
     const { state } = this;
     if (state.xIsNext && state.players.p1 === "ai") {
@@ -198,61 +183,30 @@ export default class Game extends Component {
       this.makeAIMove();
     }
 
-    let status;
-    if (this.state.winner) {
-      status = this.state.winner + " wins!";
-      const lastOuterMove = {
-        row: this.state.lastMoveLocation.outerRow,
-        col: this.state.lastMoveLocation.outerCol,
-      };
-      if (
-        this.calculateWinner(this.state.localWinners, lastOuterMove) === null
-      ) {
-        status = "Time over! " + status;
-      }
-    } else {
-      if (this.state.localWinners.indexOf(null) === -1) {
-        status = "Draw! Everybody wins!! :D";
-      } else {
-        status = "Next player: " + (this.state.xIsNext ? "X" : "O");
-      }
-    }
-
-    const timerXPaused = !this.state.xIsNext || Boolean(this.state.winner);
-    const timerOPaused = this.state.xIsNext || Boolean(this.state.winner);
-    const grid = generateGridNxN("game", 3, this.renderBoard);
+    const GameGrid = generateGridNxN("game", 3, this.renderBoard);
     return (
       <div className="Game-Settings">
-        <GameSettings callBackPlayer={this.setPlayer}></GameSettings>
+        <PlayerSettings callBackPlayer={this.setPlayer} />
         <div className="game-container">
-          {grid}
+          {GameGrid}
           {this.props.renderInfo && (
-            <div className="game-info">
-              <div id="status">{status}</div>
-              {this.props.clock && (
-                <div>
-                  [TIME] X:{" "}
-                  <CountDown
-                    key={1}
-                    player="X"
-                    seconds={this.props.time * 60}
-                    isPaused={timerXPaused}
-                    timeOverCallback={this.timeOver}
-                  />
-                  , O:{" "}
-                  <CountDown
-                    key={2}
-                    player="O"
-                    seconds={this.props.time * 60}
-                    isPaused={timerOPaused}
-                    timeOverCallback={this.timeOver}
-                  />
-                </div>
-              )}
-            </div>
+            <GameSidebar
+              clock={this.props.clock}
+              timeOver={this.timeOver}
+              time={this.props.time}
+              calculateWinner={this.calculateWinner}
+              state={state}
+            />
           )}
         </div>
       </div>
     );
   }
+  timeOver = (player) => {
+    if (player === "X") {
+      this.setState({ winner: "O" });
+    } else {
+      this.setState({ winner: "X" });
+    }
+  };
 }

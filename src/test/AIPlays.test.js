@@ -4,14 +4,14 @@ import renderer from "react-test-renderer";
 import App from "../App";
 import Game from "../components/Game";
 import Square from "../components/Square";
-import GameSettings, { dropdownOptions } from "../components/GameSettings";
+import PlayerSettings, { dropdownOptions } from "../components/PlayerSettings";
 
 describe("Ai plays", () => {
   test("select ai p1 vs human", () => {
     const app = renderer.create(<App />);
     const instance = app.root;
-    const settings = instance.findByType(GameSettings);
     const game = instance.findByType(Game);
+    const settings = game.findByType(PlayerSettings);
     const squares = game.findAllByType(Square);
 
     expect(squares.filter((x) => containsXorO(x.props.children)).length).toBe(
@@ -22,8 +22,7 @@ describe("Ai plays", () => {
     );
 
     const dropDownPlayer1 = settings.findByProps({ name: "p1" });
-    dropDownPlayer1.props.onChange(null, dropdownOptions[1]);
-
+    dropDownPlayer1.props.onChange("p1", dropdownOptions[1]);
     expect(squares.filter((x) => containsXorO(x.props.children)).length).toBe(
       1
     );
