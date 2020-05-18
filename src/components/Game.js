@@ -3,15 +3,19 @@ import Board from "./Board.js";
 import CountDown from "./CountDown.js";
 import generateGridNxN from "../util/GameUtil.js";
 
+import GameSettings from "./GameSettings";
+
+export const players = { p1: "human", p2: "human", aiP1T: 0.1, aiP2T: 0.1 };
+
 export default class Game extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      squares: Array(this.props.size * this.props.size).fill(
+      squares: Array(3 * 3).fill(
         // Outer squares
-        Array(this.props.size * this.props.size).fill(null)
+        Array(3 * 3).fill(null)
       ), // Inner squares
-      localWinners: Array(this.props.size * this.props.size).fill(null),
+      localWinners: Array(3 * 3).fill(null),
       lastMoveLocation: {
         row: null,
         col: null,
@@ -20,12 +24,20 @@ export default class Game extends Component {
       },
       xIsNext: true,
       winner: null,
-      players: props.players
+      size: 3,
+      players: players,
     };
 
     this.timeOver = this.timeOver.bind(this);
     this.renderBoard = this.renderBoard.bind(this);
   }
+
+  getPlayer = () => {
+    return this.players;
+  };
+  setPlayer = (players) => {
+    this.setState({ players: { ...players } });
+  };
 
   timeOver(player) {
     // console.log('Time over!!' + player + ' loses');
@@ -44,7 +56,7 @@ export default class Game extends Component {
     if (lastRow === null || lastCol === null) {
       return true;
     } else {
-      const currentBoard = lastRow * this.props.size + lastCol;
+      const currentBoard = lastRow * 3 + lastCol;
       if (this.state.localWinners[currentBoard]) {
         return this.state.localWinners[idx] === null;
       } else {
@@ -54,7 +66,7 @@ export default class Game extends Component {
   }
 
   handleClick = (inner_idx, outer_idx) => {
-    const size = this.props.size;
+    const size = 3;
     var outerSquares = this.state.squares.slice();
     var squares = this.state.squares[outer_idx].slice();
     var localWinners = this.state.localWinners.slice();
@@ -87,8 +99,7 @@ export default class Game extends Component {
       xIsNext: !this.state.xIsNext,
       winner: winner,
     }));
-
-  }
+  };
 
   calculateWinner(squares, lastMoveLocation) {
     if (
@@ -146,7 +157,7 @@ export default class Game extends Component {
     return (
       <Board
         key={i}
-        size={this.props.size}
+        size={3}
         squares={this.state.squares[i]}
         winner={this.state.localWinners[i]}
         clickable={this.isFieldActive(i)}
@@ -155,12 +166,36 @@ export default class Game extends Component {
     );
   }
 
+  makeAIMove = () => {
+    let moves = this.getMoves();
+    let move = this.random_item(moves);
+    this.handleClick(move.innerIndex, move.outerIndex);
+  };
+
+  getMoves = () => {
+    let moves = [];
+    this.state.localWinners.forEach((field, outerIndex) => {
+      if (field === null && this.isFieldActive(outerIndex)) {
+        this.state.squares[outerIndex].forEach((x, innerIndex) => {
+          if (x === null) {
+            moves.push({ innerIndex: innerIndex, outerIndex: outerIndex });
+          }
+        });
+      }
+    });
+    return moves;
+  };
+
+  random_item(items) {
+    return items[Math.floor(Math.random() * items.length)];
+  }
+
   render() {
     const { state } = this;
     if (state.xIsNext && state.players.p1 === "ai") {
-      state.makeAIMove();
+      this.makeAIMove();
     } else if (!state.xIsNext && state.players.p2 === "ai") {
-      state.makeAIMove();
+      this.makeAIMove();
     }
 
     let status;
@@ -185,35 +220,38 @@ export default class Game extends Component {
 
     const timerXPaused = !this.state.xIsNext || Boolean(this.state.winner);
     const timerOPaused = this.state.xIsNext || Boolean(this.state.winner);
-    const grid = generateGridNxN("game", this.props.size, this.renderBoard);
+    const grid = generateGridNxN("game", 3, this.renderBoard);
     return (
-      <div className="game-container">
-        {grid}
-        {this.props.renderInfo && (
-          <div className="game-info">
-            <div id="status">{status}</div>
-            {this.props.clock && (
-              <div>
-                [TIME] X:{" "}
-                <CountDown
-                  key={1}
-                  player="X"
-                  seconds={this.props.time * 60}
-                  isPaused={timerXPaused}
-                  timeOverCallback={this.timeOver}
-                />
-                , O:{" "}
-                <CountDown
-                  key={2}
-                  player="O"
-                  seconds={this.props.time * 60}
-                  isPaused={timerOPaused}
-                  timeOverCallback={this.timeOver}
-                />
-              </div>
-            )}
-          </div>
-        )}
+      <div className="Game-Settings">
+        <GameSettings callBackPlayer={this.setPlayer}></GameSettings>
+        <div className="game-container">
+          {grid}
+          {this.props.renderInfo && (
+            <div className="game-info">
+              <div id="status">{status}</div>
+              {this.props.clock && (
+                <div>
+                  [TIME] X:{" "}
+                  <CountDown
+                    key={1}
+                    player="X"
+                    seconds={this.props.time * 60}
+                    isPaused={timerXPaused}
+                    timeOverCallback={this.timeOver}
+                  />
+                  , O:{" "}
+                  <CountDown
+                    key={2}
+                    player="O"
+                    seconds={this.props.time * 60}
+                    isPaused={timerOPaused}
+                    timeOverCallback={this.timeOver}
+                  />
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     );
   }
