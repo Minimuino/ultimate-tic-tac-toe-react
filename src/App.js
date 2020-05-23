@@ -42,9 +42,7 @@ export default class App extends React.Component {
           </div>
           <div className="row justify-content-center">
             <Game
-              getPlayer={this.getPlayer}
               key={this.state.matchID}
-              size={3}
               clock={this.state.clock}
               time={this.state.time}
               renderInfo={true}

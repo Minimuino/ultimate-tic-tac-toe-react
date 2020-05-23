@@ -1,11 +1,14 @@
 import React, { Component } from "react";
 import Board from "./Board.js";
-import generateGridNxN from "../util/GameUtil.js";
+import generateGridNxN, { isFieldActive } from "../util/GameUtil.js";
 import { defaultPlayers } from "./PlayerSettings";
 
 import GameSidebar from "./GameSideBar";
 
 import PlayerSettings from "./PlayerSettings";
+/*
+import AI from "./AI.js";
+import WebWorker from "./workerSetup";*/
 
 export default class Game extends Component {
   state = {
@@ -26,6 +29,13 @@ export default class Game extends Component {
     players: defaultPlayers,
   };
 
+  componentDidMount = () => {
+    this.aiWorker = new Worker("./AI.js");
+    this.aiWorker.addEventListener("getRandomMove", (move) => {
+      this.handleClick(move.innerIndex, move.outerIndex);
+    });
+  };
+
   getPlayer = () => {
     return this.players;
   };
@@ -33,21 +43,14 @@ export default class Game extends Component {
     this.setState({ players: { ...players } });
   };
 
-  isFieldActive(idx) {
+  isFieldActiveWrapper(idx) {
     if (this.state.winner) return false;
 
-    const lastRow = this.state.lastMoveLocation.row;
-    const lastCol = this.state.lastMoveLocation.col;
-    if (lastRow === null || lastCol === null) {
-      return true;
-    } else {
-      const currentBoard = lastRow * 3 + lastCol;
-      if (this.state.localWinners[currentBoard]) {
-        return this.state.localWinners[idx] === null;
-      } else {
-        return idx === currentBoard;
-      }
-    }
+    return isFieldActive(
+      idx,
+      this.state.lastMoveLocation,
+      this.state.localWinners
+    );
   }
 
   handleClick = (inner_idx, outer_idx) => {
@@ -57,10 +60,10 @@ export default class Game extends Component {
     var localWinners = this.state.localWinners.slice();
     if (
       this.state.winner ||
-      !this.isFieldActive(outer_idx) ||
+      !this.isFieldActiveWrapper(outer_idx) ||
       squares[inner_idx]
     ) {
-      return;
+      throw new Error("Handleclick");
     }
     squares[inner_idx] = this.state.xIsNext ? "X" : "O";
     outerSquares[outer_idx] = squares;
@@ -138,30 +141,6 @@ export default class Game extends Component {
     return null;
   }
 
-  makeAIMove = () => {
-    let moves = this.getMoves();
-    let move = this.random_item(moves);
-    this.handleClick(move.innerIndex, move.outerIndex);
-  };
-
-  getMoves = () => {
-    let moves = [];
-    this.state.localWinners.forEach((field, outerIndex) => {
-      if (field === null && this.isFieldActive(outerIndex)) {
-        this.state.squares[outerIndex].forEach((x, innerIndex) => {
-          if (x === null) {
-            moves.push({ innerIndex: innerIndex, outerIndex: outerIndex });
-          }
-        });
-      }
-    });
-    return moves;
-  };
-
-  random_item(items) {
-    return items[Math.floor(Math.random() * items.length)];
-  }
-
   renderBoard = (i) => {
     return (
       <Board
@@ -169,7 +148,7 @@ export default class Game extends Component {
         size={3}
         squares={this.state.squares[i]}
         winner={this.state.localWinners[i]}
-        clickable={this.isFieldActive(i)}
+        clickable={this.isFieldActiveWrapper(i)}
         onClick={(p) => this.handleClick(p, i)}
       />
     );
@@ -178,11 +157,12 @@ export default class Game extends Component {
   render() {
     const { state } = this;
     if (state.xIsNext && state.players.p1 === "ai") {
-      this.makeAIMove();
+      this.aiWorker.postMessage("getRandomMove", state);
+      console.log(this.aiWorker);
+      console.log("message posted");
     } else if (!state.xIsNext && state.players.p2 === "ai") {
-      this.makeAIMove();
+      this.aiWorker.postMessage("getRandomMove", state);
     }
-
     const GameGrid = generateGridNxN("game", 3, this.renderBoard);
     return (
       <div className="Game-Settings">

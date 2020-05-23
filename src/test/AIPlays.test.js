@@ -7,7 +7,7 @@ import Square from "../components/Square";
 import PlayerSettings, { dropdownOptions } from "../components/PlayerSettings";
 
 describe("Ai plays", () => {
-  test("select ai p1 vs human", () => {
+  test("select random AI p1 vs human", () => {
     const app = renderer.create(<App />);
     const instance = app.root;
     const game = instance.findByType(Game);
@@ -33,7 +33,7 @@ describe("Ai plays", () => {
     expect(true).toBe(true);
   });
 
-  /*test("select ai p1 vs ai p2", () => {
+  /*test("select random AI p1 vs random AI p2", () => {
     const app = renderer.create(<App />);
     const instance = app.root;
     const settings = instance.findByType(GameSettings);
