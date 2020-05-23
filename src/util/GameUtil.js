@@ -35,7 +35,7 @@ export function getMoves(data) {
     ) {
       data.squares[outerIndex].forEach((x, innerIndex) => {
         if (x === null) {
-          moves.push({ innerIndex: innerIndex, outerIndex: outerIndex });
+          moves.push({ inner_idx: innerIndex, outer_idx: outerIndex });
         }
       });
     }

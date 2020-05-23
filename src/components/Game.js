@@ -1,14 +1,19 @@
 import React, { Component } from "react";
+
 import Board from "./Board.js";
 import generateGridNxN, { isFieldActive } from "../util/GameUtil.js";
 import { defaultPlayers } from "./PlayerSettings";
 
+import { wrap } from "comlink";
+
 import GameSidebar from "./GameSideBar";
 
 import PlayerSettings from "./PlayerSettings";
+import * as serviceWorker from "../serviceWorker";
+
 /*
 import AI from "./AI.js";
-import WebWorker from "./workerSetup";*/
+import - from "./workerSetup";*/
 
 export default class Game extends Component {
   state = {
@@ -29,12 +34,17 @@ export default class Game extends Component {
     players: defaultPlayers,
   };
 
-  componentDidMount = () => {
-    this.aiWorker = new Worker("./AI.js");
-    this.aiWorker.addEventListener("getRandomMove", (move) => {
-      this.handleClick(move.innerIndex, move.outerIndex);
+  getAIMove(t) {
+    const worker = new Worker("./webworker", {
+      name: "webworker",
+      type: "module",
     });
-  };
+    const workerApi = wrap(worker);
+    workerApi.getAIMove(t.state).then((move) => {
+      console.log(move);
+      t.handleClick(move.inner_idx, move.outer_idx);
+    });
+  }
 
   getPlayer = () => {
     return this.players;
@@ -157,11 +167,10 @@ export default class Game extends Component {
   render() {
     const { state } = this;
     if (state.xIsNext && state.players.p1 === "ai") {
-      this.aiWorker.postMessage("getRandomMove", state);
-      console.log(this.aiWorker);
+      this.getAIMove(this);
       console.log("message posted");
     } else if (!state.xIsNext && state.players.p2 === "ai") {
-      this.aiWorker.postMessage("getRandomMove", state);
+      this.getAIMove(this);
     }
     const GameGrid = generateGridNxN("game", 3, this.renderBoard);
     return (
