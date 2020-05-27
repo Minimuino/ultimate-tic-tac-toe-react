@@ -208,7 +208,7 @@ export default class Game extends Component {
     if (!state.winner && !(state.localWinners.indexOf(null) === -1)) {
       if (state.xIsNext && state.players.p1 !== "human") {
         this.getAIMove(this, state.players.p1);
-      } else if (!state.xIsNext && state.players.p2 === "human") {
+      } else if (!state.xIsNext && state.players.p2 !== "human") {
         this.getAIMove(this, state.players.p2);
       }
     }
