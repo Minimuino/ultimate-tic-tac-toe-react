@@ -10,7 +10,8 @@ export const defaultPlayers = {
 
 export const dropdownOptions = [
   { key: "h", value: "human", text: "human" },
-  { key: "a", value: "ai", text: "ai" },
+  { key: "rAI", value: "rAI", text: "random AI" },
+  { key: "a", value: "AI", text: "AI" },
 ];
 
 class PlayerSettings extends Component {
@@ -52,7 +53,7 @@ class PlayerSettings extends Component {
           defaultValue={this.state.players.p2}
           onChange={(a, b) => this.handlePlayerTarget("p2", b)}
         />
-        {this.state.players.p1 === "ai" && (
+        {this.state.players.p1 === "AI" && (
           <label className="settings-label">
             <Input
               label="AI player1 time (s)"
@@ -66,7 +67,7 @@ class PlayerSettings extends Component {
             />
           </label>
         )}
-        {this.state.players.p2 === "ai" && (
+        {this.state.players.p2 === "AI" && (
           <label className="settings-label">
             <Input
               label="AI player2 time (s)"

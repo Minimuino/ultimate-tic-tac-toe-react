@@ -1,7 +1,8 @@
 import { expose } from "comlink";
-import { getAIMove } from "../AI";
+import { getRandomMove, getMonteCarloMove } from "../AI";
 
 export const exports = {
-  getAIMove,
+  getRandomMove,
+  getMonteCarloMove,
 };
 expose(exports);

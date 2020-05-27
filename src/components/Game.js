@@ -9,11 +9,6 @@ import { wrap } from "comlink";
 import GameSidebar from "./GameSideBar";
 
 import PlayerSettings from "./PlayerSettings";
-import * as serviceWorker from "../serviceWorker";
-
-/*
-import AI from "./AI.js";
-import - from "./workerSetup";*/
 
 export default class Game extends Component {
   state = {
@@ -34,17 +29,38 @@ export default class Game extends Component {
     players: defaultPlayers,
   };
 
-  getAIMove(t) {
-    const worker = new Worker("./webworker", {
-      name: "webworker",
-      type: "module",
-    });
-    const workerApi = wrap(worker);
-    workerApi.getAIMove(t.state).then((move) => {
-      console.log(move);
-      t.handleClick(move.inner_idx, move.outer_idx);
-    });
-  }
+  workerApi = undefined;
+
+  getAIMove = (t, type) => {
+    this.getWorker();
+    if (type === "rAI") {
+      this.workerApi.getRandomMove(t.state).then((move) => {
+        if (move) {
+          t.handleClick(move.inner_idx, move.outer_idx);
+        } else {
+          throw Error("move is undefined: " + move);
+        }
+      });
+    } else if (type === "AI") {
+      this.workerApi.getMonteCarloMove(t.state).then((move) => {
+        if (move) {
+          t.handleClick(move.inner_idx, move.outer_idx);
+        } else {
+          throw Error("move is undefined: " + move);
+        }
+      });
+    }
+  };
+
+  getWorker = () => {
+    if (!this.workerApi) {
+      const worker = new Worker("./webworker", {
+        name: "webworker",
+        type: "module",
+      });
+      this.workerApi = wrap(worker);
+    }
+  };
 
   getPlayer = () => {
     return this.players;
@@ -73,7 +89,7 @@ export default class Game extends Component {
       !this.isFieldActiveWrapper(outer_idx) ||
       squares[inner_idx]
     ) {
-      throw new Error("Handleclick");
+      return;
     }
     squares[inner_idx] = this.state.xIsNext ? "X" : "O";
     outerSquares[outer_idx] = squares;
@@ -91,11 +107,11 @@ export default class Game extends Component {
     });
     const winner = globalWinnerLine ? localWinners[globalWinnerLine[0]] : null;
     this.setState((prevState, props) => ({
+      winner: winner,
       squares: outerSquares,
       localWinners: localWinners,
       lastMoveLocation: lastMoveLocation,
       xIsNext: !this.state.xIsNext,
-      winner: winner,
     }));
   };
 
@@ -165,13 +181,8 @@ export default class Game extends Component {
   };
 
   render() {
+    this.handleAI();
     const { state } = this;
-    if (state.xIsNext && state.players.p1 === "ai") {
-      this.getAIMove(this);
-      console.log("message posted");
-    } else if (!state.xIsNext && state.players.p2 === "ai") {
-      this.getAIMove(this);
-    }
     const GameGrid = generateGridNxN("game", 3, this.renderBoard);
     return (
       <div className="Game-Settings">
@@ -191,6 +202,18 @@ export default class Game extends Component {
       </div>
     );
   }
+
+  handleAI = () => {
+    const { state } = this;
+    if (!state.winner && !(state.localWinners.indexOf(null) === -1)) {
+      if (state.xIsNext && state.players.p1 !== "human") {
+        this.getAIMove(this, state.players.p1);
+      } else if (!state.xIsNext && state.players.p2 === "human") {
+        this.getAIMove(this, state.players.p2);
+      }
+    }
+  };
+
   timeOver = (player) => {
     if (player === "X") {
       this.setState({ winner: "O" });
