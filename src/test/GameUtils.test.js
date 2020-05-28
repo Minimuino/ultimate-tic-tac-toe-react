@@ -1,8 +1,7 @@
 import React from "react";
 import Game from "../components/Game";
-import { containsXorO } from "./testUtil";
 
-import { getMoves } from "../util/GameUtil";
+import { getMoves } from "../components/util/Field";
 
 import { shallow } from "enzyme";
 

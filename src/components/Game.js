@@ -1,7 +1,8 @@
 import React, { Component } from "react";
 
 import Board from "./Board.js";
-import generateGridNxN, { isFieldActive } from "../util/GameUtil.js";
+import generateGridNxN from "./util/GameUtil.js";
+import Field from "./util/Field";
 import { defaultPlayers } from "./PlayerSettings";
 
 import { wrap } from "comlink";
@@ -72,7 +73,7 @@ export default class Game extends Component {
   isFieldActiveWrapper(idx) {
     if (this.state.winner) return false;
 
-    return isFieldActive(
+    return Field.isFieldActive(
       idx,
       this.state.lastMoveLocation,
       this.state.localWinners

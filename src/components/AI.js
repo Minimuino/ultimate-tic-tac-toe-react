@@ -1,7 +1,8 @@
-import { getMoves } from "../util/GameUtil";
+import Field from "./util/Field";
+import Tree from "./util/Tree";
 
 export function getRandomMove(data) {
-  let moves = getMoves(data);
+  let moves = Field.getMoves(data);
   return random_item(moves);
 }
 
@@ -15,25 +16,21 @@ export function getMonteCarloMove(data) {
   return tree.getMostUsed();
 }
 
-class Tree {
-  moves = [];
-  constructor(data) {
-    this.moves = getMoves(data);
-  }
-}
-
 function evaluateMoves(tree, time) {
   const startTime = Date.now();
   while (Date.now() - startTime < time) {
-    evaluateMove(tree);
+    evaluate(tree);
   }
 }
 
-function evaluateMove(tree) {
-  // start 0 start 1: pick a move
-  // expand move
-  // repeat 0 until no more move
-  // give move children
-  // make random move until end
-  // update evaluatiom
+function evaluate(tree) {
+  while (tree.hasChildren()) {
+    tree = tree.getBestNode();
+  }
+  if (!Field.isOver(tree)) {
+    tree.makeChildren();
+    tree = tree.getRandomChild();
+  }
+  let result = Field.propagate(tree);
+  tree.update(result);
 }
