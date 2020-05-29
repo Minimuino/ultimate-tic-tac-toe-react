@@ -1,7 +1,7 @@
 import React from "react";
 import Game from "../components/Game";
 
-import { getMoves } from "../components/util/Field";
+import Field from "../components/util/Field";
 
 import { shallow } from "enzyme";
 
@@ -10,12 +10,12 @@ import Adapter from "enzyme-adapter-react-16";
 
 configure({ adapter: new Adapter() });
 
-describe("Gamuitls: ", () => {
+describe("Field: ", () => {
   test("getMoves", () => {
     const game = shallow(<Game></Game>).instance();
-    expect(getMoves(game.state).length).toBe(81);
-    game.handleClick(0, 1);
-    expect(getMoves(game.state).length).toBe(9);
+    expect(Field.getMoves(game.state).length).toBe(81);
+    game.handleClick(Field.getMove(1, 0));
+    expect(Field.getMoves(game.state).length).toBe(9);
   });
   /*
   test("makeMove", () => {

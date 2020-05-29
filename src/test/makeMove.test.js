@@ -5,8 +5,8 @@ import renderer from "react-test-renderer";
 
 import { containsXorO, isClickAble } from "./testUtil";
 
-describe("onclick", () => {
-  test("current: makeon click", () => {
+describe("makeMove", () => {
+  test("single click", () => {
     const game = renderer.create(
       <Game key={0} size={3} clock={false} time={10} renderInfo={true} />
     ); // only renders the first lvl

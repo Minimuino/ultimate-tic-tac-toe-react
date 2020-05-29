@@ -1,5 +1,5 @@
 import React from "react";
-import { getAIMove } from "../components/AI";
+import { getRandomMove } from "../components/AI";
 import Game from "../components/Game";
 
 import { shallow } from "enzyme";
@@ -20,7 +20,7 @@ describe("AI test", () => {
       lastMoveLocation: instance.state.lastMoveLocation,
     };
 
-    const move = getAIMove(data);
+    const move = getRandomMove(data);
 
     expect(move).not.toBe(null);
   });

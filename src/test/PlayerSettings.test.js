@@ -17,7 +17,7 @@ describe("PlayerSettings", () => {
     const dropdownPlayer1 = root.findByProps({ name: "p1" });
     dropdownPlayer1.props.onChange(null, dropdownOptions[1]);
 
-    expect(players.p1).toBe(dropdownOptions[1].text);
+    expect(players.p1).toBe(dropdownOptions[1].value);
     expect(true).toBe(true);
   });
 });

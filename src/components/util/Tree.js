@@ -9,7 +9,7 @@ export default class Tree {
   initTime = undefined;
 
   constructor(data, parent, move, time) {
-    if (data.x === undefined) {
+    if (data.xIsNext === undefined) {
       throw Error("Data of Tree does not contain X");
     }
     this.data = { ...data };

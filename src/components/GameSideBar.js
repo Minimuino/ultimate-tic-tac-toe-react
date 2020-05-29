@@ -1,10 +1,11 @@
 import React from "react";
 import CountDown from "./CountDown.js";
+import Field from "./util/Field";
 
 export default function GameSidebar(props) {
   return (
     <div className="game-info">
-      <div id="status">{setStatus(props.calculateWinner, props.state)}</div>
+      <div id="status">{setStatus(props.state)}</div>
       {props.clock && getClock(props.timeOverCallback, props.time, props.state)}
     </div>
   );
@@ -35,7 +36,7 @@ function getClock(timeOverCallback, time, state) {
   );
 }
 
-function setStatus(calculateWinner, state) {
+function setStatus(state) {
   let status;
   if (state.winner) {
     status = state.winner + " wins!";
@@ -43,7 +44,7 @@ function setStatus(calculateWinner, state) {
       row: state.lastMoveLocation.outerRow,
       col: state.lastMoveLocation.outerCol,
     };
-    if (calculateWinner(state.localWinners, lastOuterMove) === null) {
+    if (Field.calculateWinner(state.localWinners, lastOuterMove) === null) {
       status = "Time over! " + status;
     }
   } else {
