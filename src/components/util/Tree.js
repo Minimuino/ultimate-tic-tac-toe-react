@@ -9,8 +9,13 @@ export default class Tree {
   initTime = undefined;
 
   constructor(data, parent, move, time) {
-    if (data.xIsNext === undefined) {
-      throw Error("Data of Tree does not contain X");
+    if (
+      !("xIsNext" in data) ||
+      !("squares" in data) ||
+      !("lastMoveLocation" in data) ||
+      !("localWinners" in data)
+    ) {
+      throw Error("Tree data incomplete +" + data);
     }
     this.data = { ...data };
     this.parent = parent;
@@ -51,11 +56,11 @@ export default class Tree {
     if (this.hasChildren()) {
       throw Error("makeChildren even due has children");
     }
-    let moves = Field.getMoves(this);
+    let moves = Field.getMoves(this.data);
     let time = Date.now();
     moves.forEach((move) => {
       let data = Field.getNextData(this.data, move);
-      this.nodes.add(new Tree(data, this, move, time));
+      this.nodes.push(new Tree(data, this, move, time));
     });
   };
 
@@ -78,9 +83,19 @@ export default class Tree {
         this.parent.update(Results.VICTORY);
       }
     } else {
-      this.parent.update(Results.DRAW);
+      if (this.parent) {
+        this.parent.update(Results.VICTORY);
+      }
     }
   };
+
+  getMostUsed = () => {
+    return this.nodes.sort(this.highestSimulationCount).reverse()[0];
+  };
+
+  highestSimulationCount(node1, node2) {
+    return node1.simulationCount >= node2.simulationCount ? 1 : -1;
+  }
 }
 
 function random_item(items) {

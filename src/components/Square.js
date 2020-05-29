@@ -27,7 +27,11 @@ export default function Square(props) {
     <button
       className="square"
       style={style}
-      onClick={props.clickable && props.onClick}
+      onClick={() => {
+        if (props.clickable) {
+          props.onClick();
+        }
+      }}
     >
       {props.value}
     </button>

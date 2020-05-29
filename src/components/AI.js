@@ -10,10 +10,10 @@ function random_item(items) {
   return items[Math.floor(Math.random() * items.length)];
 }
 
-export function getMonteCarloMove(data) {
-  const tree = new Tree(data);
-  evaluateMoves(tree, data.time);
-  return tree.getMostUsed();
+export function getMonteCarloMove(data, time) {
+  const tree = new Tree(data, null, null, Date.now());
+  evaluateMoves(tree, time);
+  return tree.getMostUsed().move;
 }
 
 function evaluateMoves(tree, time) {

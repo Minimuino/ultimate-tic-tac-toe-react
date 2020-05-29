@@ -1,3 +1,5 @@
+import { getRandomMove } from "../AI";
+
 export default class Field {
   static getMoves(data) {
     let moves = [];
@@ -144,9 +146,30 @@ export default class Field {
     return null;
   }
 
-  static isOver(tree) {}
+  static isOver(tree) {
+    let data = tree.data;
+    return Field.getMoves(data).length === 0;
+  }
 
-  static propagate(tree) {}
+  static propagate(tree) {
+    var data = tree.data;
+    if (tree.hasChildren()) {
+      throw Error("Tree shouldn't have children");
+    } else {
+      var winner = Field.getWinner(data.localWinners, data.lastMoveLocation);
+      while (Field.getMoves(data).length > 0) {
+        data = Field.getNextData(data, getRandomMove(data));
+        winner = Field.getWinner(data.localWinners, data.lastMoveLocation);
+      }
+      if (winner) {
+        return winner === (tree.xIsNext ? "O" : "X")
+          ? Results.VICTORY
+          : Results.DEFEAT;
+      } else {
+        return Results.DRAW;
+      }
+    }
+  }
 }
 
 export const Results = {

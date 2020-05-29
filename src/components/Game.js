@@ -41,12 +41,17 @@ export default class Game extends Component {
         throw Error("move is undefined: " + move);
       }
     };
+
     if (type === "rAI") {
       this.workerApi.getRandomMove(t.state).then((move) => {
         doMove(move);
       });
     } else if (type === "AI") {
-      this.workerApi.getMonteCarloMove(t.state).then((move) => {
+      let time = t.state.xIsNext
+        ? this.state.players.aiP1T
+        : this.state.players.aiP1T;
+      time = time * 1000;
+      this.workerApi.getMonteCarloMove(t.state, time).then((move) => {
         doMove(move);
       });
     }

@@ -50,6 +50,7 @@ function setStatus(state) {
   } else {
     if (state.localWinners.indexOf(null) === -1) {
       status = "Draw! Everybody wins!! :D";
+      console.log(state);
     } else {
       status = "Next player: " + (state.xIsNext ? "X" : "O");
     }
