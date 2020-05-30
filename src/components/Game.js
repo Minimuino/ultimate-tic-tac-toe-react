@@ -138,7 +138,7 @@ export default class Game extends Component {
 
   handleAI = () => {
     const { state } = this;
-    if (!state.winner && !(state.localWinners.indexOf(null) === -1)) {
+    if (Field.getMoves(state).length > 0) {
       if (state.xIsNext && state.players.p1 !== "human") {
         this.getAIMove(this, state.players.p1);
       } else if (!state.xIsNext && state.players.p2 !== "human") {
