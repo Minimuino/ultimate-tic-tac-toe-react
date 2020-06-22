@@ -2,7 +2,7 @@ import Field from "./util/Field";
 import Tree from "./util/Tree";
 
 export function getRandomMove(data) {
-  let moves = Field.getMoves(data);
+  const moves = Field.getMoves(data);
   return random_item(moves);
 }
 

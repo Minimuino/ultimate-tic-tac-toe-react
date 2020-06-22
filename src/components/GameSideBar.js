@@ -40,11 +40,8 @@ function setStatus(state) {
   let status;
   if (state.winner) {
     status = state.winner + " wins!";
-    const lastOuterMove = {
-      row: state.lastMoveLocation.outerRow,
-      col: state.lastMoveLocation.outerCol,
-    };
-    if (Field.calculateWinner(state.localWinners, lastOuterMove) === null) {
+
+    if (Field.calc3x3(state.localWinners) === null) {
       status = "Time over! " + status;
     }
   } else {

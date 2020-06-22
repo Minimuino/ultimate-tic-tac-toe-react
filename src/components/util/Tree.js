@@ -12,7 +12,6 @@ export default class Tree {
     if (
       !("xIsNext" in data) ||
       !("squares" in data) ||
-      !("lastMoveLocation" in data) ||
       !("localWinners" in data)
     ) {
       throw Error("Tree data incomplete +" + data);
@@ -32,12 +31,8 @@ export default class Tree {
     return this.nodes.sort(this.compareNodes)[this.nodes.length - 1];
   };
 
-  compareNodes = (node1, node2) => {
-    if (node1.getScore(this.sortTime) > node2.getScore(this.sortTime)) {
-      return 1;
-    } else {
-      return -1;
-    }
+  compareNodes = (n1, n2) => {
+    return n1.getScore(this.sortTime) - n2.getScore(this.sortTime);
   };
 
   getScore = (time) => {
@@ -98,7 +93,7 @@ export default class Tree {
   };
 
   highestSimulationCount(node1, node2) {
-    return node1.simulationCount >= node2.simulationCount ? 1 : -1;
+    return node1.simulationCount - node2.simulationCount;
   }
 }
 

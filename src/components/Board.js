@@ -14,7 +14,7 @@ export default class Board extends React.Component {
         key={i}
         value={this.props.squares[i]}
         winner={this.props.winner}
-        clickable={this.props.clickable}
+        clickable={!this.props.squares[i] && this.props.clickable}
         onClick={() => this.props.onClick(i)}
       />
     );

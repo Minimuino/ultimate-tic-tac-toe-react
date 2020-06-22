@@ -1,20 +1,14 @@
 import { getRandomMove } from "../AI";
+import { squareColors } from "../Square";
 
 export default class Field {
   static getMoves(data) {
     let moves = [];
-    data.localWinners.forEach((field, outerIndex) => {
-      if (
-        field === null &&
-        Field.isFieldActive(
-          outerIndex,
-          data.lastMoveLocation,
-          data.localWinners
-        )
-      ) {
-        data.squares[outerIndex].forEach((x, innerIndex) => {
+    data.localWinners.forEach((field, outer_idx) => {
+      if (field === null && data.activeFields[outer_idx]) {
+        data.squares[outer_idx].forEach((x, inner_idx) => {
           if (x === null) {
-            moves.push(Field.getMove(innerIndex, outerIndex));
+            moves.push(Field.getMove(inner_idx, outer_idx));
           }
         });
       }
@@ -22,148 +16,92 @@ export default class Field {
     return moves;
   }
 
-  static isFieldActive(idx, lastMoveLocation, localWinners) {
-    const lastRow = lastMoveLocation.row;
-    const lastCol = lastMoveLocation.col;
-    if (lastRow === null || lastCol === null) {
-      return true;
-    } else {
-      const currentBoard = lastRow * 3 + lastCol;
-      if (localWinners[currentBoard]) {
-        return localWinners[idx] === null;
-      } else {
-        return idx === currentBoard;
-      }
-    }
-  }
-
   static getNextData(data, move) {
     if (data.xIsNext === undefined) {
       throw Error("Data xIsNext is undefined");
     }
 
-    let outerSquares = data.squares.slice();
-    let squares = data.squares[move.outer_idx].slice();
-    let localWinners = data.localWinners.slice();
+    let squares = data.squares.map((x) => x.slice());
 
-    if (
-      !Field.isFieldActive(
-        move.outer_idx,
-        data.lastMoveLocation,
-        localWinners
-      ) ||
-      squares[move.inner_idx]
-    ) {
-      throw Error("illegal Move");
+    if (!move || squares[move.outer_idx][move.inner_idx]) {
+      console.log("hello");
+      throw Error("field already taken");
+    }
+    if (!data.activeFields[move.outer_idx]) {
+      throw Error("field inactive");
     }
 
-    squares[move.inner_idx] = data.xIsNext ? "X" : "O";
-    outerSquares[move.outer_idx] = squares;
-
-    const lastMoveLocation = Field.getlastMoveLocation(move);
-
-    const newWinnerLine = Field.calculateWinner(squares, lastMoveLocation);
-    if (newWinnerLine) {
-      localWinners[move.outer_idx] = squares[newWinnerLine[0]];
-    } else if (squares.indexOf(null) === -1) {
-      localWinners[move.outer_idx] = "-";
+    squares[move.outer_idx][move.inner_idx] = data.xIsNext ? "X" : "O";
+    const localWinners = squares.map((x) => Field.calc3x3(x));
+    const winner = Field.calc3x3(localWinners);
+    let activeFields = data.activeFields.slice();
+    if (localWinners[move.inner_idx]) {
+      localWinners.forEach((x, i) => (activeFields[i] = x ? false : true));
+    } else {
+      activeFields = activeFields.map((x, i) => i === move.inner_idx);
     }
-    const newData = {
-      squares: outerSquares,
+
+    if (winner) {
+      activeFields = Array(9).fill(false);
+    }
+
+    return {
+      winner: winner,
+      squares: squares,
       localWinners: localWinners,
-      lastMoveLocation: lastMoveLocation,
+      activeFields: activeFields,
       xIsNext: !data.xIsNext,
     };
-    return newData;
   }
 
   static getMove = (i, o) => {
     return { inner_idx: i, outer_idx: o };
   };
 
-  static getlastMoveLocation = (move) => {
-    const lastMoveLocation = {
-      row: Math.floor(move.inner_idx / 3),
-      col: move.inner_idx % 3,
-      outerRow: Math.floor(move.outer_idx / 3),
-      outerCol: move.outer_idx % 3,
-    };
-    return lastMoveLocation;
-  };
+  static calc3x3 = (field) => {
+    field = field.map((x) => (x ? x : " "));
+    var matches = ["XXX", "OOO"];
 
-  static getWinner = (localWinners, lastMoveLocation) => {
-    const globalWinnerLine = Field.calculateWinner(localWinners, {
-      row: lastMoveLocation.outerRow,
-      col: lastMoveLocation.outerCol,
-    });
-    return globalWinnerLine ? localWinners[globalWinnerLine[0]] : null;
-  };
+    var winCombinations = [
+      field[0] + field[1] + field[2], // 1st line
+      field[3] + field[4] + field[5], // 2nd line
+      field[6] + field[7] + field[8], // 3rd line
+      field[0] + field[3] + field[6], // 1st column
+      field[1] + field[4] + field[7], // 2nd column
+      field[2] + field[5] + field[8], // 3rd column
+      field[0] + field[4] + field[8], // Primary diagonal
+      field[2] + field[4] + field[6], // Secondary diagonal
+    ];
 
-  static calculateWinner(squares, lastMoveLocation) {
-    if (
-      !lastMoveLocation ||
-      lastMoveLocation.row === null ||
-      lastMoveLocation.col === null
-    )
-      return null;
-
-    const size = Math.sqrt(squares.length);
-    const x = lastMoveLocation.row;
-    const y = lastMoveLocation.col;
-    const lastPlayer = squares[x * size + y];
-    if (lastPlayer === null) return null;
-
-    // Generate possible winner lines for last move
-    var lines = { row: [], col: [], diag: [], antidiag: [] };
-    // Row
-    for (let i = 0; i < size; i++) {
-      lines.row.push(x * size + i);
-    }
-    // Col
-    for (let i = 0; i < size; i++) {
-      lines.col.push(i * size + y);
-    }
-    // Diagonal
-    if (x === y) {
-      for (let i = 0; i < size; i++) {
-        lines.diag.push(i * size + i);
-      }
-    }
-    // Anti-diagonal
-    if (x + y === size - 1) {
-      for (let i = 0; i < size; i++) {
-        lines.antidiag.push(i * size + size - 1 - i);
-      }
-    }
-
-    // Chech values on each candidate line
-    for (let prop in lines) {
-      const line = lines[prop];
-      if (line.length !== size) continue;
-      const result = line.reduce(
-        (acc, index) => acc && squares[index] === lastPlayer,
-        true
-      );
-      if (result) {
-        return line;
+    // Loop through all the rows looking for a match
+    for (var i = 0; i < winCombinations.length; i++) {
+      if (
+        winCombinations[i] === matches[0] ||
+        winCombinations[i] === matches[1]
+      ) {
+        return winCombinations[i].charAt(0);
       }
     }
     return null;
-  }
+  };
+
+  static calcWinner = (squares) => {
+    return Field.calc3x3(squares.map((x) => Field.calc3x3(x)));
+  };
 
   static dataIsOver(data) {
     return Field.getMoves(data).length === 0;
   }
 
   static propagate(tree) {
-    var data = tree.data;
+    let data = tree.data;
     if (tree.hasChildren()) {
       throw Error("Tree shouldn't have children");
     } else {
-      var winner = Field.getWinner(data.localWinners, data.lastMoveLocation);
-      while (data.localWinners.indexOf(null) !== -1 && !winner) {
+      let winner = Field.calc3x3(data.localWinners);
+      while (!Field.dataIsOver(data)) {
         data = Field.getNextData(data, getRandomMove(data));
-        winner = Field.getWinner(data.localWinners, data.lastMoveLocation);
+        winner = data.winner;
       }
       if (winner) {
         return winner === (tree.data.xIsNext ? "O" : "X")

@@ -17,12 +17,7 @@ export const gamestartStats = {
     Array(3 * 3).fill(null)
   ), // Inner squares
   localWinners: Array(3 * 3).fill(null),
-  lastMoveLocation: {
-    row: null,
-    col: null,
-    outerRow: null,
-    outerCol: null,
-  },
+  activeFields: Array(9).fill(true),
   xIsNext: true,
   winner: null,
   size: 3,
@@ -110,29 +105,13 @@ export default class Game extends Component {
     }
   };
 
-  isFieldActiveWrapper(idx) {
-    if (this.state.winner) return false;
-
-    return Field.isFieldActive(
-      idx,
-      this.state.lastMoveLocation,
-      this.state.localWinners
-    );
-  }
-
   handleClick = (move) => {
     if (this.state.winner) {
       return;
     }
     const nextData = Field.getNextData(this.state, move);
 
-    const winner = Field.getWinner(
-      nextData.localWinners,
-      nextData.lastMoveLocation
-    );
-
     this.setState((prevState, props) => ({
-      winner: winner,
       ...nextData,
     }));
   };
@@ -144,7 +123,7 @@ export default class Game extends Component {
         size={3}
         squares={this.state.squares[i]}
         winner={this.state.localWinners[i]}
-        clickable={this.isFieldActiveWrapper(i)}
+        clickable={this.state.activeFields[i]}
         onClick={(p) => this.handleClick(Field.getMove(p, i))}
       />
     );

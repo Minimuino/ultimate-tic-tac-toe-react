@@ -14,16 +14,13 @@ import Tree from "../components/util/Tree";
 import Field from "../components/util/Field";
 
 configure({ adapter: new Adapter() });
-
 describe("AI ", () => {
   test("random AI", () => {
     const game = shallow(<Game clock={false} renderInfo={true} />);
     const instance = game.instance();
 
     const data = {
-      squares: instance.state.squares,
-      localWinners: instance.state.localWinners,
-      lastMoveLocation: instance.state.lastMoveLocation,
+      ...instance.state,
     };
 
     const move = getRandomMove(data);
@@ -36,10 +33,7 @@ describe("AI ", () => {
     const instance = game.instance();
 
     const data = {
-      squares: instance.state.squares,
-      localWinners: instance.state.localWinners,
-      lastMoveLocation: instance.state.lastMoveLocation,
-      xIsNext: instance.state.xIsNext,
+      ...instance.state,
     };
 
     const move = getMonteCarloMove(data, parseFloat("100"));
