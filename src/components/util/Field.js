@@ -39,30 +39,35 @@ export default class Field {
 
   static getNextData(data, move) {
     if (data.xIsNext === undefined) {
-      throw Error("Data x is undefined");
+      throw Error("Data xIsNext is undefined");
     }
-    let inner_idx = move.inner_idx;
-    let outer_idx = move.outer_idx;
 
-    var outerSquares = data.squares.slice();
-    var squares = data.squares[outer_idx].slice();
-    var localWinners = data.localWinners.slice();
+    let outerSquares = data.squares.slice();
+    let squares = data.squares[move.outer_idx].slice();
+    let localWinners = data.localWinners.slice();
 
     if (
-      !Field.isFieldActive(outer_idx, data.lastMoveLocation, localWinners) ||
-      squares[inner_idx]
+      !Field.isFieldActive(
+        move.outer_idx,
+        data.lastMoveLocation,
+        localWinners
+      ) ||
+      squares[move.inner_idx]
     ) {
       throw Error("illegal Move");
     }
 
-    squares[inner_idx] = data.xIsNext ? "X" : "O";
-    outerSquares[outer_idx] = squares;
+    squares[move.inner_idx] = data.xIsNext ? "X" : "O";
+    outerSquares[move.outer_idx] = squares;
 
     const lastMoveLocation = Field.getlastMoveLocation(move);
 
     const newWinnerLine = Field.calculateWinner(squares, lastMoveLocation);
-    localWinners[outer_idx] = newWinnerLine && squares[newWinnerLine[0]];
-
+    if (newWinnerLine) {
+      localWinners[move.outer_idx] = squares[newWinnerLine[0]];
+    } else if (squares.indexOf(null) === -1) {
+      localWinners[move.outer_idx] = "-";
+    }
     const newData = {
       squares: outerSquares,
       localWinners: localWinners,
@@ -146,8 +151,7 @@ export default class Field {
     return null;
   }
 
-  static isOver(tree) {
-    let data = tree.data;
+  static dataIsOver(data) {
     return Field.getMoves(data).length === 0;
   }
 
@@ -157,12 +161,12 @@ export default class Field {
       throw Error("Tree shouldn't have children");
     } else {
       var winner = Field.getWinner(data.localWinners, data.lastMoveLocation);
-      while (Field.getMoves(data).length > 0) {
+      while (data.localWinners.indexOf(null) !== -1 && !winner) {
         data = Field.getNextData(data, getRandomMove(data));
         winner = Field.getWinner(data.localWinners, data.lastMoveLocation);
       }
       if (winner) {
-        return winner === (tree.xIsNext ? "O" : "X")
+        return winner === (tree.data.xIsNext ? "O" : "X")
           ? Results.VICTORY
           : Results.DEFEAT;
       } else {

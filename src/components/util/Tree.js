@@ -29,11 +29,11 @@ export default class Tree {
 
   getBestNode = () => {
     this.sortTime = Date.now();
-    return this.nodes.sort(this.compareNodes).reverse()[0];
+    return this.nodes.sort(this.compareNodes)[this.nodes.length - 1];
   };
 
   compareNodes = (node1, node2) => {
-    if (node1.getScore(this.sortTime) >= node2.getScore(this.sortTime)) {
+    if (node1.getScore(this.sortTime) > node2.getScore(this.sortTime)) {
       return 1;
     } else {
       return -1;
@@ -84,13 +84,17 @@ export default class Tree {
       }
     } else {
       if (this.parent) {
-        this.parent.update(Results.VICTORY);
+        this.parent.update(Results.DRAW);
       }
     }
   };
 
+  isOver = () => {
+    return Field.getMoves(this.data).length === 0;
+  };
+
   getMostUsed = () => {
-    return this.nodes.sort(this.highestSimulationCount).reverse()[0];
+    return this.nodes.sort(this.highestSimulationCount)[this.nodes.length - 1];
   };
 
   highestSimulationCount(node1, node2) {

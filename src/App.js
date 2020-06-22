@@ -1,6 +1,7 @@
 import React from "react";
 import SettingsForm from "./components/SettingsForm.js";
 import Game from "./components/Game.js";
+import { defaultPlayers } from "./components/PlayerSettings.js";
 
 export const defaultSettings = {
   clock: false,
@@ -17,16 +18,20 @@ export default class App extends React.Component {
     };
     this.newGame = this.newGame.bind(this);
   }
+  players = defaultPlayers;
 
-  newGame(clock, time, players) {
+  newGame(clock, time) {
     // console.log('New size is ' + size);
     this.setState((prevState, props) => ({
       clock: clock,
       time: time,
       matchID: prevState.matchID + 1,
-      players: players,
     }));
   }
+
+  onPlayerChange = (player) => {
+    this.players = player;
+  };
 
   updatePlayer(players) {}
   render() {
@@ -45,6 +50,8 @@ export default class App extends React.Component {
               key={this.state.matchID}
               clock={this.state.clock}
               time={this.state.time}
+              players={this.players}
+              onPlayerChange={this.onPlayerChange}
               renderInfo={true}
             />
           </div>

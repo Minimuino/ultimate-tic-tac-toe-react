@@ -2,10 +2,17 @@ import React, { Component } from "react";
 import { Dropdown, Input } from "semantic-ui-react";
 
 export const defaultPlayers = {
+  p1: "AI",
+  p2: "AI",
+  aiP1T: 1,
+  aiP2T: 1,
+};
+
+export const humanVsHuman = {
   p1: "human",
   p2: "human",
-  aiP1T: 0.1,
-  aiP2T: 0.1,
+  aiP1T: 1,
+  aiP2T: 1,
 };
 
 export const dropdownOptions = [
@@ -16,7 +23,7 @@ export const dropdownOptions = [
 
 class PlayerSettings extends Component {
   state = {
-    players: defaultPlayers, //TODO: change!
+    players: this.props.players, //TODO: change!
     callBackPlayer: this.props.callBackPlayer,
   };
 
@@ -63,7 +70,7 @@ class PlayerSettings extends Component {
               min="0.001"
               max="9"
               value={this.state.players.aiP1T}
-              onChange={this.handlePlayers}
+              onChange={(a, b) => this.handlePlayerTarget("aiP1T", b)}
             />
           </label>
         )}
@@ -77,7 +84,7 @@ class PlayerSettings extends Component {
               type="number"
               max="9"
               value={this.state.players.aiP2T}
-              onChange={this.handlePlayers}
+              onChange={(a, b) => this.handlePlayerTarget("aiP2T", b)}
             />
           </label>
         )}

@@ -18,16 +18,19 @@ export function getMonteCarloMove(data, time) {
 
 function evaluateMoves(tree, time) {
   const startTime = Date.now();
+  let x = 0;
   while (Date.now() - startTime < time) {
     evaluate(tree);
+    x++;
   }
+  console.log("Simulations: " + x);
 }
 
-function evaluate(tree) {
+export function evaluate(tree) {
   while (tree.hasChildren()) {
     tree = tree.getBestNode();
   }
-  if (!Field.isOver(tree)) {
+  if (!tree.isOver()) {
     tree.makeChildren();
     tree = tree.getRandomChild();
   }

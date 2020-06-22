@@ -3,7 +3,7 @@ import React, { Component } from "react";
 import Board from "./Board.js";
 import generateGridNxN from "./util/GameUtil.js";
 import Field from "./util/Field";
-import { defaultPlayers } from "./PlayerSettings";
+import { humanVsHuman } from "./PlayerSettings";
 
 import { wrap } from "comlink";
 
@@ -11,50 +11,82 @@ import GameSidebar from "./GameSideBar";
 
 import PlayerSettings from "./PlayerSettings";
 
+export const gamestartStats = {
+  squares: Array(3 * 3).fill(
+    // Outer squares
+    Array(3 * 3).fill(null)
+  ), // Inner squares
+  localWinners: Array(3 * 3).fill(null),
+  lastMoveLocation: {
+    row: null,
+    col: null,
+    outerRow: null,
+    outerCol: null,
+  },
+  xIsNext: true,
+  winner: null,
+  size: 3,
+};
+
 export default class Game extends Component {
   state = {
-    squares: Array(3 * 3).fill(
-      // Outer squares
-      Array(3 * 3).fill(null)
-    ), // Inner squares
-    localWinners: Array(3 * 3).fill(null),
-    lastMoveLocation: {
-      row: null,
-      col: null,
-      outerRow: null,
-      outerCol: null,
-    },
-    xIsNext: true,
-    winner: null,
-    size: 3,
-    players: defaultPlayers,
+    ...gamestartStats,
   };
 
+  constructor(props) {
+    super(props);
+    if (props.players) {
+      this.state.players = props.players;
+    } else {
+      this.state.players = humanVsHuman;
+    }
+  }
+
   workerApi = undefined;
+  workers = [0];
 
   getAIMove = (t, type) => {
+    this.removeWorkers();
+
     this.getWorker();
-    const doMove = (move) => {
-      if (move) {
-        t.handleClick(move);
-      } else {
-        throw Error("move is undefined: " + move);
+    const doMove = (move, w) => {
+      if (this.noUpdateOccured(w)) {
+        if (move) {
+          t.handleClick(move);
+        } else {
+          throw Error("move is undefined: " + move);
+        }
       }
     };
-
+    let id = this.getIdWorkerId();
     if (type === "rAI") {
       this.workerApi.getRandomMove(t.state).then((move) => {
-        doMove(move);
+        doMove(move, id);
       });
     } else if (type === "AI") {
       let time = t.state.xIsNext
         ? this.state.players.aiP1T
-        : this.state.players.aiP1T;
+        : this.state.players.aiP2T;
       time = time * 1000;
       this.workerApi.getMonteCarloMove(t.state, time).then((move) => {
-        doMove(move);
+        doMove(move, id);
       });
     }
+  };
+
+  getIdWorkerId = () => {
+    let id = this.workers[0] + 1;
+    this.workers.push(id);
+    this.workers[0] = id + 1;
+    return id;
+  };
+
+  noUpdateOccured = (id) => {
+    return this.workers.indexOf(id) !== -1;
+  };
+
+  removeWorkers = () => {
+    this.workers = [this.workers[0]];
   };
 
   getWorker = () => {
@@ -70,8 +102,12 @@ export default class Game extends Component {
   getPlayer = () => {
     return this.players;
   };
+
   setPlayer = (players) => {
     this.setState({ players: { ...players } });
+    if (this.props.onPlayerChange) {
+      this.props.onPlayerChange(players);
+    }
   };
 
   isFieldActiveWrapper(idx) {
@@ -120,7 +156,10 @@ export default class Game extends Component {
     const GameGrid = generateGridNxN("game", 3, this.renderBoard);
     return (
       <div className="Game-Settings">
-        <PlayerSettings callBackPlayer={this.setPlayer} />
+        <PlayerSettings
+          callBackPlayer={this.setPlayer}
+          players={state.players}
+        />
         <div className="game-container">
           {GameGrid}
           {this.props.renderInfo && (

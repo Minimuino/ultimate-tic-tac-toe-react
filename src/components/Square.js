@@ -5,6 +5,7 @@ export const squareColors = {
   O: "#2db2e2",
   WINNER_X: "#ffccb5",
   WINNER_O: "#dbf5ff",
+  DRAW: "#F0F8FF",
   CLICKABLE: "#e2ffec",
 };
 
@@ -16,8 +17,10 @@ export default function Square(props) {
   if (props.winner) {
     if (props.winner === "X") {
       style.background = squareColors.WINNER_X;
-    } else {
+    } else if (props.winner === "O") {
       style.background = squareColors.WINNER_O;
+    } else {
+      style.background = squareColors.DRAW;
     }
   }
   if (props.clickable) {
