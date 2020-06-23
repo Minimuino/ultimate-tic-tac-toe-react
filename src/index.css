@@ -1,9 +1,10 @@
 body {
-  font: 14px "Century Gothic", Futura, sans-serif;
   margin: 20px;
+  overflow: hidden;
 }
 
-ol, ul {
+ol,
+ul {
   padding-left: 30px;
 }
 

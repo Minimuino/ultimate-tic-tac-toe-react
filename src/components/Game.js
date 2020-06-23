@@ -132,15 +132,21 @@ export default class Game extends Component {
   render() {
     this.handleAI();
     const { state } = this;
-    const GameGrid = generateGridNxN("game", 3, this.renderBoard);
     return (
-      <div className="Game-Settings">
-        <PlayerSettings
-          callBackPlayer={this.setPlayer}
-          players={state.players}
-        />
+      <div>
+        <div className="Game-Settings">
+          <PlayerSettings
+            callBackPlayer={this.setPlayer}
+            players={state.players}
+          />
+        </div>
         <div className="game-container">
-          {GameGrid}
+          <div className="game-row">
+            <Grid render={this.renderBoard} />
+          </div>
+        </div>
+        <br />
+        <div className="game-container">
           {this.props.renderInfo && (
             <GameSidebar
               clock={this.props.clock}
@@ -172,4 +178,8 @@ export default class Game extends Component {
       this.setState({ winner: "X" });
     }
   };
+}
+
+function Grid(props) {
+  return generateGridNxN("game", 3, props.render);
 }
